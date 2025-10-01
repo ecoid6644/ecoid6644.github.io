@@ -1,87 +1,187 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>QR Generator</title>
   <style>
-    body { font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif; background:#f5f5f5; display:flex; flex-direction:column; align-items:center; padding:24px; }
-    h1 { color:#046b30; margin:12px 0; font-weight:700; }
-    .card { background:#fff; border-radius:16px; box-shadow:0 6px 24px rgba(0,0,0,.12); padding:16px; width:min(720px,92vw); }
-    .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-    input[type=text]{ flex:1; padding:12px 14px; font-size:16px; border-radius:10px; border:1px solid #d4d7dc; }
-    button{ cursor:pointer; padding:12px 16px; font-size:16px; border-radius:12px; border:none; background:linear-gradient(45deg,#046b30,#00c5a0); color:#fff; font-weight:600; }
-    canvas{ margin-top:14px; border-radius:16px; background:#fff; }
-    .error{ display:none; margin-top:8px; color:#a40000; background:#ffecec; border:1px solid #ffb2b2; padding:8px 10px; border-radius:8px; }
+    :root { --brand1:#046b30; --brand2:#00c5a0; }
+    * { box-sizing: border-box; }
+    body {
+      font-family:-apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      margin:0; background:#f6f7f8;
+      padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+      display:flex; justify-content:center;
+    }
+    .wrap { width:min(720px, 96vw); }
+    h1 { text-align:center; color:var(--brand1); margin:6px 0 14px; font-weight:800; letter-spacing:.2px; }
+    .card {
+      background:#fff; border-radius:20px;
+      box-shadow:0 10px 30px rgba(0,0,0,.12);
+      padding:16px; overflow:hidden;
+    }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .row > * { flex: 1 1 auto; }
+    input[type=text]{
+      flex:1 1 260px; min-width: 0;
+      padding:12px 14px; font-size:16px;
+      border:1px solid #d4d7dc; border-radius:12px; outline:none;
+    }
+    .btn {
+      flex:0 0 auto;
+      padding:12px 16px; font-size:16px; font-weight:700;
+      border:none; border-radius:12px; cursor:pointer; color:#fff;
+      background:linear-gradient(45deg,var(--brand1),var(--brand2));
+    }
+    .btn.secondary {
+      background:#eef3f1; color:#0a3; font-weight:600;
+    }
+    .stack { display:grid; gap:10px; grid-template-columns: 1fr 1fr; }
+    @media (max-width:520px){
+      .row { gap:8px; }
+      .stack { grid-template-columns: 1fr; }
+      .btn { width:100%; }
+    }
+    .canvasShell {
+      margin-top:12px; border-radius:18px; background:#fff;
+    }
+    canvas { display:block; width:100%; height:auto; border-radius:18px; }
+    .err { display:none; margin-top:10px; color:#a40000; background:#ffecec;
+           border:1px solid #ffb2b2; padding:8px 10px; border-radius:10px; }
+    .hint { color:#68707a; font-size:13px; margin-top:8px; text-align:center; }
   </style>
 </head>
 <body>
-  <h1>QR Generator</h1>
-  <div class="card">
-    <div class="row">
-      <input id="linkInput" type="text" placeholder="Enter or paste a URL" value="https://www.one.nz">
-      <button id="btnGenerate" type="button">Generate</button>
-      <button id="btnDownload" type="button">Download</button>
+  <div class="wrap">
+    <h1>QR Generator</h1>
+    <div class="card">
+      <div class="row">
+        <input id="linkInput" type="text" placeholder="Enter or paste a URL" value="https://www.one.nz" inputmode="url">
+        <div class="stack">
+          <button id="btnGenerate" class="btn">Generate</button>
+          <button id="btnDownload" class="btn">Download</button>
+        </div>
+      </div>
+
+      <div id="err" class="err"></div>
+
+      <div class="canvasShell">
+        <canvas id="qrCanvas"></canvas>
+      </div>
+      <div class="hint">Looks crisp on any phone: canvas auto-scales to your screen and device‑pixel ratio.</div>
     </div>
-    <div id="err" class="error"></div>
-    <canvas id="qrCanvas"></canvas>
   </div>
 
-  <!-- Primary QR library CDN -->
+  <!-- Primary QR lib -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js" defer></script>
   <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const canvas = document.getElementById('qrCanvas');
-      const ctx = canvas.getContext('2d');
-      const input = document.getElementById('linkInput');
-      const errBox = document.getElementById('err');
+  (function(){
+    const canvas = document.getElementById('qrCanvas');
+    const ctx = canvas.getContext('2d');
+    const input = document.getElementById('linkInput');
+    const errBox = document.getElementById('err');
 
-      function ensureLib(cb){
-        if (window.QRCode && typeof QRCode.toDataURL==='function') return cb();
-        const s=document.createElement('script');
-        s.src='https://unpkg.com/qrcode/build/qrcode.min.js';
-        s.onload=cb;
-        s.onerror=()=>{ errBox.style.display='block'; errBox.textContent='Could not load QR library. Allow cdn.jsdelivr.net or unpkg.com in any content blocker.'; };
+    let lastUrl = '';
+
+    function cssPixelsToBacking(px){ return Math.round(px * (window.devicePixelRatio || 1)); }
+
+    // Choose the square size to fit the card width nicely
+    function targetDisplaySize(){
+      const shell = canvas.parentElement.getBoundingClientRect();
+      // leave a small horizontal gutter
+      const max = Math.max(240, Math.min(640, shell.width - 2));
+      return Math.round(max);
+    }
+
+    async function ensureLib(){ 
+      if (window.QRCode && typeof QRCode.toDataURL === 'function') return true;
+      // fallback
+      await new Promise((res, rej)=>{
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/qrcode/build/qrcode.min.js';
+        s.onload = res; s.onerror = rej;
         document.head.appendChild(s);
-      }
+      }).catch(()=>{});
+      return (window.QRCode && typeof QRCode.toDataURL === 'function');
+    }
 
-      async function generate(){
-        ensureLib(async () => {
-          let url = (input.value || '').trim();
-          if (!url) return;
-          if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    async function render(url){
+      errBox.style.display='none';
+      if (!url) return;
+      if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
 
-          try{
-            const dataUrl = await QRCode.toDataURL(url, { errorCorrectionLevel:'H', margin:1, width:540, color:{dark:'#000000', light:'#FFFFFF'} });
-            const img = new Image(); img.src = dataUrl;
-            img.onload = () => {
-              const size = 540, quiet = 44;
-              canvas.width = size + quiet*2; canvas.height = size + quiet*2;
-              const g = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
-              g.addColorStop(0,'#046b30'); g.addColorStop(1,'#00c5a0');
-              ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
-              ctx.fillStyle = '#fff'; ctx.fillRect(quiet,quiet,size,size);
-              ctx.drawImage(img, quiet, quiet, size, size);
-            };
-          }catch(e){
-            errBox.style.display='block'; errBox.textContent='Error: ' + (e?.message || e);
-          }
-        });
-      }
+      const ok = await ensureLib();
+      if(!ok){ errBox.style.display='block'; errBox.textContent = 'QR library blocked by a content filter.'; return; }
 
-      function download(){
-        if (!canvas.width) return;
-        const a=document.createElement('a');
-        a.download='qr-code.png';
-        a.href=canvas.toDataURL('image/png');
-        a.click();
-      }
+      // Determine display size (CSS pixels) and true canvas size (backing store)
+      const display = targetDisplaySize();
+      const quiet = Math.round(display * 0.08); // 8% quiet zone
+      const qrSize = display - quiet*2;
 
-      document.getElementById('btnGenerate').addEventListener('click', generate);
-      document.getElementById('btnDownload').addEventListener('click', download);
+      const w = cssPixelsToBacking(display);
+      const h = cssPixelsToBacking(display);
+      canvas.width = w; canvas.height = h;
+      canvas.style.width = display + 'px';
+      canvas.style.height = 'auto';
 
-      generate(); // auto
-    });
+      // Gradient background
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, '#046b30');
+      grad.addColorStop(1, '#00c5a0');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // White quiet zone
+      const q = cssPixelsToBacking(quiet);
+      const s = cssPixelsToBacking(qrSize);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(q, q, s, s);
+
+      // Generate QR image at exact pixels to avoid interpolation blur
+      const qrPx = Math.max(180, Math.min(1200, s)); // cap for memory
+      const dataUrl = await QRCode.toDataURL(url, {
+        errorCorrectionLevel:'H',
+        margin: 1,
+        width: qrPx,
+        color:{ dark:'#000000', light:'#FFFFFF' }
+      });
+
+      const img = new Image();
+      img.src = dataUrl;
+      await img.decode();
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, q, q, s, s);
+    }
+
+    async function generate(){
+      lastUrl = (input.value || '').trim();
+      await render(lastUrl);
+    }
+
+    function download(){
+      if (!canvas.width) return;
+      const a = document.createElement('a');
+      a.download = 'qr-code.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    }
+
+    // Events
+    document.getElementById('btnGenerate').addEventListener('click', generate);
+    document.getElementById('btnDownload').addEventListener('click', download);
+
+    // Re-render on rotate / resize for crisp DPR sizing
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      if (!lastUrl) return;
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => render(lastUrl), 150);
+    }, { passive:true });
+
+    // First render
+    lastUrl = input.value.trim();
+    if(lastUrl) render(lastUrl);
+  })();
   </script>
 </body>
 </html>
