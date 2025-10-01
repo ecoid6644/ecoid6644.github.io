@@ -4,165 +4,84 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>QR Generator</title>
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="icons/icon-512.png">
-  <link rel="manifest" href="manifest.webmanifest">
   <style>
-    :root { color-scheme: light only; }
-    body {
-      font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif;
-      background: #f5f5f5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
-      min-height: 100vh;
-    }
-    h1 { color: #046b30; margin: 12px 0; font-weight: 700; }
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.12);
-      padding: 16px;
-      width: min(720px, 92vw);
-    }
-    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    input[type="text"] {
-      flex: 1;
-      padding: 12px 14px;
-      font-size: 16px;
-      border-radius: 10px;
-      border: 1px solid #d4d7dc;
-      outline: none;
-    }
-    button {
-      cursor: pointer;
-      padding: 12px 16px;
-      font-size: 16px;
-      border-radius: 12px;
-      border: none;
-      background: linear-gradient(45deg, #046b30, #00c5a0);
-      color: #fff;
-      font-weight: 600;
-    }
-    canvas {
-      margin-top: 14px;
-      border-radius: 16px;
-      background: white;
-    }
-    .hint { color:#616873; font-size: 13px; margin-top:8px; }
-    .actions { display:flex; gap:8px; margin-top:8px; flex-wrap: wrap; }
-    .muted { background:#eef3f1; color:#0a3; }
+    body { font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif; background:#f5f5f5; display:flex; flex-direction:column; align-items:center; padding:24px; }
+    h1 { color:#046b30; margin:12px 0; font-weight:700; }
+    .card { background:#fff; border-radius:16px; box-shadow:0 6px 24px rgba(0,0,0,.12); padding:16px; width:min(720px,92vw); }
+    .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    input[type=text]{ flex:1; padding:12px 14px; font-size:16px; border-radius:10px; border:1px solid #d4d7dc; }
+    button{ cursor:pointer; padding:12px 16px; font-size:16px; border-radius:12px; border:none; background:linear-gradient(45deg,#046b30,#00c5a0); color:#fff; font-weight:600; }
+    canvas{ margin-top:14px; border-radius:16px; background:#fff; }
+    .error{ display:none; margin-top:8px; color:#a40000; background:#ffecec; border:1px solid #ffb2b2; padding:8px 10px; border-radius:8px; }
   </style>
 </head>
 <body>
   <h1>QR Generator</h1>
   <div class="card">
     <div class="row">
-      <input id="linkInput" type="text" placeholder="Enter or paste a URL" value="">
-      <button id="btnGenerate">Generate</button>
-      <button id="btnDownload">Download</button>
+      <input id="linkInput" type="text" placeholder="Enter or paste a URL" value="https://www.one.nz">
+      <button id="btnGenerate" type="button">Generate</button>
+      <button id="btnDownload" type="button">Download</button>
     </div>
-    <div class="actions">
-      <button class="muted" id="btnShare">Share...</button>
-      <button class="muted" id="btnInstall" style="display:none;">Install App</button>
-    </div>
+    <div id="err" class="error"></div>
     <canvas id="qrCanvas"></canvas>
-    <div class="hint">Tip: in Safari, use Share → Add to Home Screen to install on iPhone.</div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <!-- Primary QR library CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js" defer></script>
   <script>
-    const canvas = document.getElementById("qrCanvas");
-    const ctx = canvas.getContext("2d");
-    const linkInput = document.getElementById("linkInput");
+    window.addEventListener('DOMContentLoaded', () => {
+      const canvas = document.getElementById('qrCanvas');
+      const ctx = canvas.getContext('2d');
+      const input = document.getElementById('linkInput');
+      const errBox = document.getElementById('err');
 
-    async function generateQR(url) {
-      const input = (url ?? linkInput.value || "").trim();
-      if (!input) return;
+      function ensureLib(cb){
+        if (window.QRCode && typeof QRCode.toDataURL==='function') return cb();
+        const s=document.createElement('script');
+        s.src='https://unpkg.com/qrcode/build/qrcode.min.js';
+        s.onload=cb;
+        s.onerror=()=>{ errBox.style.display='block'; errBox.textContent='Could not load QR library. Allow cdn.jsdelivr.net or unpkg.com in any content blocker.'; };
+        document.head.appendChild(s);
+      }
 
-      const qrDataUrl = await QRCode.toDataURL(input, {
-        errorCorrectionLevel: "H",
-        margin: 1,
-        width: 540,
-        color: { dark: "#000000", light: "#FFFFFF" }
-      });
+      async function generate(){
+        ensureLib(async () => {
+          let url = (input.value || '').trim();
+          if (!url) return;
+          if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
 
-      const qrImg = new Image();
-      qrImg.src = qrDataUrl;
-      await qrImg.decode();
+          try{
+            const dataUrl = await QRCode.toDataURL(url, { errorCorrectionLevel:'H', margin:1, width:540, color:{dark:'#000000', light:'#FFFFFF'} });
+            const img = new Image(); img.src = dataUrl;
+            img.onload = () => {
+              const size = 540, quiet = 44;
+              canvas.width = size + quiet*2; canvas.height = size + quiet*2;
+              const g = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+              g.addColorStop(0,'#046b30'); g.addColorStop(1,'#00c5a0');
+              ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
+              ctx.fillStyle = '#fff'; ctx.fillRect(quiet,quiet,size,size);
+              ctx.drawImage(img, quiet, quiet, size, size);
+            };
+          }catch(e){
+            errBox.style.display='block'; errBox.textContent='Error: ' + (e?.message || e);
+          }
+        });
+      }
 
-      const size = 540;
-      const quiet = 44;
-      canvas.width = size + quiet * 2;
-      canvas.height = size + quiet * 2;
+      function download(){
+        if (!canvas.width) return;
+        const a=document.createElement('a');
+        a.download='qr-code.png';
+        a.href=canvas.toDataURL('image/png');
+        a.click();
+      }
 
-      const g = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      g.addColorStop(0, "#046b30");
-      g.addColorStop(1, "#00c5a0");
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      document.getElementById('btnGenerate').addEventListener('click', generate);
+      document.getElementById('btnDownload').addEventListener('click', download);
 
-      ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(quiet, quiet, size, size);
-
-      ctx.drawImage(qrImg, quiet, quiet, size, size);
-    }
-
-    function downloadPNG() {
-      if (!canvas.width) return;
-      const a = document.createElement("a");
-      a.download = "qr-code.png";
-      a.href = canvas.toDataURL("image/png");
-      a.click();
-    }
-
-    async function shareImage() {
-      if (!navigator.share || !canvas.width) return;
-      const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
-      const file = new File([blob], "qr-code.png", { type: "image/png" });
-      try {
-        await navigator.share({ files: [file], title: "QR Code", text: linkInput.value });
-      } catch (e) {}
-    }
-
-    document.getElementById("btnGenerate").addEventListener("click", () => generateQR());
-    document.getElementById("btnDownload").addEventListener("click", downloadPNG);
-    document.getElementById("btnShare").addEventListener("click", shareImage);
-
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      const btn = document.getElementById("btnInstall");
-      btn.style.display = "inline-block";
-      btn.onclick = async () => {
-        btn.style.display = "none";
-        deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-        deferredPrompt = null;
-      };
+      generate(); // auto
     });
-
-    // Try auto-fill from clipboard
-    (async () => {
-      try {
-        const text = await navigator.clipboard.readText();
-        if (text && /^https?:\/\//i.test(text)) {
-          linkInput.value = text;
-          generateQR(text);
-        }
-      } catch (_) {}
-    })();
-  </script>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(()=>{});
-      });
-    }
   </script>
 </body>
 </html>
