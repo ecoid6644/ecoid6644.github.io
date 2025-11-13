@@ -9,7 +9,7 @@
   <!-- SheetJS (read) + ExcelJS (write) for Loan Audit -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-  <!-- QR lib for QR Generator -->
+  <!-- QR lib -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <style>
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
@@ -30,14 +30,12 @@
       </div>
     </header>
 
-    <!-- Tabs content -->
     <main>
       <!-- Loan Audit Tab -->
       <section id="tab-loan" class="space-y-5">
         <div class="card p-5">
           <h2 class="text-xl font-semibold mb-3">1) Upload serial report</h2>
           <div class="flex flex-col md:flex-row gap-3 items-start md:items-center">
-            <!-- accept removed so OS shows 'All files (*.*)' by default -->
             <input id="fileInput" type="file" class="block"/>
             <div id="loadStats" class="text-sm text-slate-600"></div>
           </div>
@@ -166,7 +164,7 @@
             <div class="rounded-2xl overflow-hidden bg-white">
               <canvas id="qrCanvas" style="display:block; width:100%; height:auto;"></canvas>
             </div>
-            <div class="text-slate-600 text-sm">Looks crisp on any phone: canvas auto-scales to your screen and device‑pixel ratio.</div>
+            <div class="text-slate-600 text-sm">Canvas is redrawn when the tab is shown or on Generate.</div>
           </div>
         </div>
       </section>
@@ -187,6 +185,10 @@
     tabQR.classList.toggle('hidden', isLoan);
     btnLoan.setAttribute('aria-selected', String(isLoan));
     btnQR.setAttribute('aria-selected', String(!isLoan));
+    if (!isLoan) {
+      // Notify QR module that its tab is now visible so it can render at correct size
+      window.dispatchEvent(new CustomEvent('qr-tab-shown'));
+    }
   }
   btnLoan.addEventListener('click', ()=>show('loan'));
   btnQR.addEventListener('click', ()=>show('qr'));
@@ -194,7 +196,7 @@
 </script>
 
 <script>
-// --------- Loan Audit (v3) ---------
+// --------- Loan Audit logic (unchanged from v3 aside from placement) ---------
 (function(){
   const toSerial = (v) => {
     if (v === null || v === undefined) return "";
@@ -250,7 +252,7 @@
   const elAddSerial = document.getElementById("btnAddSerial");
   const elExportError = document.getElementById("exportError");
 
-  // Render condition options
+  // Render condition list + mapping
   (function(){
     const condList = document.getElementById("condList");
     CONDITION_OPTIONS.forEach((c)=>{
@@ -280,7 +282,8 @@
       return !maybeHdr && !allBlank;
     }).map((r)=> ({
       Item: r["Item"] ?? "",
-      Serial: toSerial(r["Serial#"]),
+      Serial: (String(r["Serial#"]||"")).trim(),
+      SerialDigits: toSerial(r["Serial#"]),
       SerialDescription: r["Serial Description"] ?? r["SerialDescription"] ?? "",
       Warehouse: r["Warehouse"] ?? "",
       Name: r["Name"] ?? "",
@@ -321,7 +324,7 @@
     for (let i=0; i<max; i++){
       const r = availableRows[i];
       const tr = document.createElement("tr"); tr.className="border-b";
-      const tdS = document.createElement("td"); tdS.className="p-2 mono"; tdS.textContent=r.Serial;
+      const tdS = document.createElement("td"); tdS.className="p-2 mono"; tdS.textContent=r.SerialDigits || r.Serial;
       const tdI = document.createElement("td"); tdI.className="p-2"; tdI.textContent=r.Item;
       const tdIS = document.createElement("td"); tdIS.className="p-2";
       const selIS = document.createElement("select"); selIS.className="border rounded-xl px-2 py-1";
@@ -354,7 +357,7 @@
     for (let i=0; i<max; i++){
       const r = allocatedRows[i];
       const tr = document.createElement("tr"); tr.className="border-b";
-      const tdS = document.createElement("td"); tdS.className="p-2 mono"; tdS.textContent=r.Serial;
+      const tdS = document.createElement("td"); tdS.className="p-2 mono"; tdS.textContent=r.SerialDigits || r.Serial;
       const tdI = document.createElement("td"); tdI.className="p-2"; tdI.textContent=r.Item;
       const tdSC = document.createElement("td"); tdSC.className="p-2";
       const sel = document.createElement("select"); sel.className="border rounded-xl px-2 py-1";
@@ -382,7 +385,7 @@
     const s = toSerial(value);
     if (!s) return;
     scanned.add(s);
-    const r = availableRows.find(x => x.Serial === s);
+    const r = availableRows.find(x => (x.SerialDigits||x.Serial) === s);
     if (r){ r.InStore = "Yes"; updateCounts(); renderAvailable(); }
     else {
       const li=document.createElement("li"); li.textContent = s; elUnknownList.appendChild(li);
@@ -390,7 +393,6 @@
     }
   }
 
-  // Auto-add on Enter/Tab and keep focus
   elManual.addEventListener("keydown", (e)=>{
     if (e.key === "Enter" || e.key === "Tab"){
       e.preventDefault();
@@ -405,7 +407,6 @@
     elManual.focus();
   });
 
-  // Export with ExcelJS
   document.getElementById("btnExport").addEventListener("click", async () => {
     elExportError.classList.add("hidden");
     elExportError.textContent = "";
@@ -415,38 +416,42 @@
       }
       const wb = new ExcelJS.Workbook();
 
-      // Data Validation sheet
       const dv = wb.addWorksheet("Data Validation");
       dv.addRow(["status", "Device condition", "Store actions"]);
       const statusBlock = [
-        ["Within Timeframe", "", STATUS_ACTION_ROWS[0].action],
-        ["Overdue: Less than 2 weeks", "", STATUS_ACTION_ROWS[1].action],
-        ["Overdue: More than 2 weeks", "", STATUS_ACTION_ROWS[2].action],
-        ["Missing a signed contract instore", "", STATUS_ACTION_ROWS[3].action]
+        ["Within Timeframe", "", "No action"],
+        ["Overdue: Less than 2 weeks", "", "Follow up with customer to arrange return"],
+        ["Overdue: More than 2 weeks", "", "Escalate and arrange immediate return"],
+        ["Missing a signed contract instore", "", "Obtain signed contract immediately"]
       ];
       statusBlock.forEach(r => dv.addRow(r));
-      CONDITION_OPTIONS.forEach(c => dv.addRow(["", c, (CONDITION_TO_ACTION[c]||"")]));
+      const condToAction = {
+        "Useable Condition": "Ensure device is reset, charged and ready to be loaned out",
+        "Device is damaged/Unusable": "Follow process on K Hub article https://k-hub.vodafone.nz/pronto-how-to-charge-for-a-loan-phone",
+        "Not fit for purpose: Button phone, Data stick, Vodafone Branded device, iPhone 8 or lower": "Raise request with Sales Ops to remove device from Fleet. Once removed, recycle as per BAU swap kit process",
+        "Lost/Unable to Locate": "Try located device. If unable to find, Blocklist device and request Sales Operations to remove. Once confirmed, recycle as per BAU swap kit process.",
+        "Pending Check": "Run Check"
+      };
+      CONDITION_OPTIONS.forEach(c => dv.addRow(["", c, (condToAction[c]||"")]));
 
       dv.getCell("E1").value = "Device condition list";
       CONDITION_OPTIONS.forEach((c,i)=> dv.getCell(`E${i+2}`).value = c);
       const condListRef = `'Data Validation'!$E$2:$E$${CONDITION_OPTIONS.length+1}`;
 
-      // Paste Loan Report
       const raw = wb.addWorksheet("Paste Loan Report");
       raw.addRow(["Item","Serial#","Serial Description","Warehouse","Name","Availability","Contract#","Consign#","CS","Repair#","RS","Condition","Description","Created"]);
-      rawRows.forEach(r => raw.addRow([r.Item, r.Serial, r.SerialDescription, r.Warehouse, r.Name, r.Availability, r.Contract, r.Consign, r.CS, r.Repair, r.RS, r.Condition, r.Description, r.Created]));
+      rawRows.forEach(r => raw.addRow([r.Item, r.SerialDigits || r.Serial, r.SerialDescription, r.Warehouse, r.Name, r.Availability, r.Contract, r.Consign, r.CS, r.Repair, r.RS, r.Condition, r.Description, r.Created]));
 
-      // Scan Available devices here
       const scan = wb.addWorksheet("Scan Available devices here");
       scan.addRow(["Scan Devices here", "Device Status"]);
       Array.from(scanned).forEach(s => {
-        scan.addRow([s, availableRows.some(r => r.Serial===s) ? "Available" : (allocatedRows.some(r => r.Serial===s) ? "Allocated" : "Unknown")]);
+        const status = availableRows.some(r => (r.SerialDigits||r.Serial)===s) ? "Available" : (allocatedRows.some(r => (r.SerialDigits||r.Serial)===s) ? "Allocated" : "Unknown");
+        scan.addRow([s, status]);
       });
 
-      // Available
       const wsA = wb.addWorksheet("Available");
       wsA.addRow(["Item","Serial#","Serial Description","Warehouse","Name","Availability","Contract#","Consign#","Condition","Description","Created","In Store","Condition","Action based on condition","Comments"]);
-      availableRows.forEach(r => wsA.addRow([r.Item, String(r.Serial), r.SerialDescription, r.Warehouse, r.Name, "Available", r.Contract, r.Consign, r.Condition, r.Description, r.Created, r.InStore, r.ConditionChoice || "Useable Condition", "", r.Comments || ""]));
+      availableRows.forEach(r => wsA.addRow([r.Item, String(r.SerialDigits || r.Serial), r.SerialDescription, r.Warehouse, r.Name, "Available", r.Contract, r.Consign, r.Condition, r.Description, r.Created, r.InStore, r.ConditionChoice || "Useable Condition", "", r.Comments || ""]));
       const lastRowA = wsA.rowCount;
       if (lastRowA > 1){
         wsA.dataValidations.add(`N2:N${lastRowA}`, { type:"list", allowBlank:true, formulae:[condListRef], showErrorMessage:true, errorStyle:"stop", errorTitle:"Invalid choice", error:"Pick a value from the dropdown." });
@@ -456,10 +461,9 @@
         }
       }
 
-      // Allocated
       const wsL = wb.addWorksheet("Allocated");
       wsL.addRow(["Item","Serial#","Serial Description","Warehouse","Name","Availability","Contract#","Consign#","Condition","Description","Created","Signed contract","Contract Actions","Due Date","Days overdue","Status","Overdue Actions"]);
-      allocatedRows.forEach(r => wsL.addRow([r.Item, String(r.Serial), r.SerialDescription, r.Warehouse, r.Name, r.Availability, r.Contract, r.Consign, r.Condition, r.Description, r.Created, r.SignedContract, "", r.DueDate || "", "", "", ""]));
+      allocatedRows.forEach(r => wsL.addRow([r.Item, String(r.SerialDigits || r.Serial), r.SerialDescription, r.Warehouse, r.Name, r.Availability, r.Contract, r.Consign, r.Condition, r.Description, r.Created, r.SignedContract, "", r.DueDate || "", "", "", ""]));
       const lastRowL = wsL.rowCount;
       if (lastRowL > 1){
         for (let r=2; r<=lastRowL; r++){
@@ -486,7 +490,7 @@
 </script>
 
 <script>
-// --------- QR Generator (adapted IDs; same behaviour) ---------
+// --------- QR Generator with tab-aware rendering ---------
 (function(){
   const canvas = document.getElementById('qrCanvas');
   const ctx = canvas.getContext('2d');
@@ -495,20 +499,22 @@
 
   let lastUrl = '';
 
-  function cssPixelsToBacking(px){ return Math.round(px * (window.devicePixelRatio || 1)); }
+  function cssPixelsToBacking(px){ return Math.max(1, Math.round(px * (window.devicePixelRatio || 1))); }
   function targetDisplaySize(){
     const shell = canvas.parentElement.getBoundingClientRect();
-    const max = Math.max(240, Math.min(640, shell.width - 2));
-    return Math.round(max);
+    const width = Math.round(shell.width || 0);
+    // When hidden, width can be 0. Use a sensible fallback.
+    return width > 0 ? Math.min(640, Math.max(240, width - 2)) : 360;
   }
 
   async function render(url){
     errBox.classList.add('hidden');
     if (!url) return;
-    if (!/^https?:\/\\//i.test(url)) url = 'https://' + url;
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;  // fixed regex
+
     if (!window.QRCode || typeof QRCode.toDataURL !== 'function'){
       errBox.classList.remove('hidden');
-      errBox.textContent = 'QR library not available.';
+      errBox.textContent = 'QR library failed to load.';
       return;
     }
 
@@ -548,33 +554,37 @@
     ctx.drawImage(img, q, q, s, s);
   }
 
-  async function generate(){
+  // Generate click
+  document.getElementById('qrBtnGenerate').addEventListener('click', async () => {
     lastUrl = (input.value || '').trim();
     await render(lastUrl);
-  }
+  });
 
-  function download(){
+  // Download
+  document.getElementById('qrBtnDownload').addEventListener('click', () => {
     if (!canvas.width) return;
     const a = document.createElement('a');
     a.download = 'qr-code.png';
     a.href = canvas.toDataURL('image/png');
     a.click();
-  }
+  });
 
-  document.getElementById('qrBtnGenerate').addEventListener('click', generate);
-  document.getElementById('qrBtnDownload').addEventListener('click', download);
+  // Re-render when tab becomes visible
+  window.addEventListener('qr-tab-shown', () => {
+    lastUrl = (input.value || '').trim() || lastUrl;
+    if (lastUrl) render(lastUrl);
+  });
 
-  // Re-render when tab is shown & on resize
+  // Also rerender on resize if already visible
   let resizeTimer;
   window.addEventListener('resize', () => {
     if (!lastUrl) return;
+    // Only re-render if the QR tab is visible
+    const visible = !document.getElementById('tab-qr').classList.contains('hidden');
+    if (!visible) return;
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => render(lastUrl), 150);
   }, { passive:true });
-
-  // initial
-  lastUrl = input.value.trim();
-  if(lastUrl) render(lastUrl);
 })();
 </script>
 </body>
