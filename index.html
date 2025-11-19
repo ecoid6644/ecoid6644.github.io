@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>One NZ — Tools</title>
+  <title>One NZ — Preston's Toolkit</title>
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- SheetJS (read) + ExcelJS (write) -->
@@ -33,7 +33,7 @@
         </div>
         <div>
           <h1 class="text-3xl font-bold tracking-tight text-slate-900">One NZ <span
-              class="text-slate-400 font-light">|</span> Tools</h1>
+              class="text-slate-400 font-light">|</span> Preston's Toolkit</h1>
           <p class="text-sm text-slate-500 font-medium">Loan Audit & QR Generator</p>
         </div>
       </div>
@@ -240,7 +240,8 @@
             </button>
           </div>
           <p class="text-xs text-slate-500 mt-3">Includes: <em>Paste Loan Report</em>, <em>Scan Available</em>,
-            <em>Available</em>, <em>Allocated</em>, and <em>Data Validation</em> sheets.</p>
+            <em>Available</em>, <em>Allocated</em>, and <em>Data Validation</em> sheets.
+          </p>
           <p id="exportError" class="text-sm text-red-600 mt-2 hidden bg-red-50 p-2 rounded border border-red-100"></p>
         </div>
 
@@ -343,7 +344,7 @@
     </main>
 
     <footer class="text-center text-slate-400 text-sm py-8">
-      <p>&copy; One NZ Toolkit. Internal Use Only.</p>
+      <p>Preston's. Internal Use Only.</p>
     </footer>
   </div>
 
@@ -586,13 +587,13 @@
 
           const dv = wb.addWorksheet("Data Validation");
           dv.addRow(["status", "Device condition", "Store actions"]);
-          const statusBlock = [
-            ["Within Timeframe", "", "No action"],
-            ["Overdue: Less than 2 weeks", "", "Follow up with customer to arrange return"],
-            ["Overdue: More than 2 weeks", "", "Escalate and arrange immediate return"],
-            ["Missing a signed contract instore", "", "Obtain signed contract immediately"]
+          const STATUS_ACTION_ROWS = [
+            { status: "Within Timeframe", action: "No Action" },
+            { status: "Overdue: Less than 2 weeks", action: "Contact customer to return device. Set clear timeframe of a week to have device returned or customer will be charged unless a new reasonable timeframe is agree by customer and Retail Lead. Return device and re issue new agreement with new timeframe as due date. Send customer email clearly stating new timeframe." },
+            { status: "Overdue: More than 2 weeks", action: "Contact customer to return device. Set clear timeframe of a 3 days to have device returned or customer will be charged. If customer is not contactable, Blocklist device an await  3 days for the customer to return. If not returned, return device in pronto, raise request with sales operations to charge the customer and remove the device from your fleet." },
+            { status: "Missing a signed contract instore", action: "Investigate why there is no contract with person who issued loan phone, provide appropriate action e.g., training/set expectations. Contact customer to arrange time to re visit store and sign contract." }
           ];
-          statusBlock.forEach(r => dv.addRow(r));
+          STATUS_ACTION_ROWS.forEach(r => dv.addRow([r.status, "", r.action]));
           const condToAction = {
             "Useable Condition": "Ensure device is reset, charged and ready to be loaned out",
             "Device is damaged/Unusable": "Follow process on K Hub article https://k-hub.vodafone.nz/pronto-how-to-charge-for-a-loan-phone",
@@ -611,10 +612,17 @@
           rawRows.forEach(r => raw.addRow([r.Item, r.SerialDigits || r.Serial, r.SerialDescription, r.Warehouse, r.Name, r.Availability, r.Contract, r.Consign, r.CS, r.Repair, r.RS, r.Condition, r.Description, r.Created]));
 
           const scan = wb.addWorksheet("Scan Available devices here");
-          scan.addRow(["Scan Devices here", "Device Status"]);
+          scan.addRow(["Scan Devices here", "Device Status", "Action"]);
           Array.from(scanned).forEach(s => {
-            const status = availableRows.some(r => (r.SerialDigits || r.Serial) === s) ? "Available" : (allocatedRows.some(r => (r.SerialDigits || r.Serial) === s) ? "Allocated" : "Unknown");
-            scan.addRow([s, status]);
+            let status = "Unknown";
+            let action = "";
+            if (availableRows.some(r => (r.SerialDigits || r.Serial) === s)) {
+              status = "Available";
+            } else if (allocatedRows.some(r => (r.SerialDigits || r.Serial) === s)) {
+              status = "Device in allocated state but physically in store";
+              action = "Check for paperwork. Return device in Pronto.";
+            }
+            scan.addRow([s, status, action]);
           });
 
           const wsA = wb.addWorksheet("Available");
