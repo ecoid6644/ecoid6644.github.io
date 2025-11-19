@@ -416,70 +416,79 @@
       const elAddSerial = document.getElementById("btnAddSerial");
       const elExportError = document.getElementById("exportError");
 
-      // Render condition list + mapping
-      (function () {
-        const condList = document.getElementById("condList");
-        CONDITION_OPTIONS.forEach((c) => {
-          const li = document.createElement("li"); li.textContent = c; condList.appendChild(li);
-        });
-        const condBody = document.getElementById("condMapBody");
-        CONDITION_OPTIONS.forEach((c) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `<td class="p-2 font-medium">${c}</td><td class="p-2 text-slate-600">${CONDITION_TO_ACTION[c] || ""}</td>`;
-          condBody.appendChild(tr);
-        });
-      })();
+      // Removed: Validation Rules & Actions display logic (elements removed)
 
       // Load report
       elFile.addEventListener("change", async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        elFileName.value = file.name.replace(/\\.[^.]+$/, "");
-        const ab = await file.arrayBuffer();
-        const wb = XLSX.read(ab, { type: "array" });
-        const sheetName = wb.SheetNames.find(n => /paste/i.test(n)) || wb.SheetNames[0];
-        const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: "" });
+        try {
+          const file = e.target.files?.[0];
+          if (!file) return;
 
-        rawRows = rows.filter((r) => {
-          const maybeHdr = String(r["Item"]).toLowerCase() === "item" && String(r["Serial#"]).toLowerCase().includes("serial");
-          const allBlank = Object.values(r).every(v => String(v).trim() === "");
-          return !maybeHdr && !allBlank;
-        }).map((r) => ({
-          Item: r["Item"] ?? "",
-          Serial: (String(r["Serial#"] || "")).trim(),
-          SerialDigits: toSerial(r["Serial#"]),
-          SerialDescription: r["Serial Description"] ?? r["SerialDescription"] ?? "",
-          Warehouse: r["Warehouse"] ?? "",
-          Name: r["Name"] ?? "",
-          Availability: (r["Availability"] ?? "").toString().trim(),
-          Contract: r["Contract#"] ?? "",
-          Consign: r["Consign#"] ?? "",
-          CS: r["CS"] ?? "",
-          Repair: r["Repair#"] ?? "",
-          RS: r["RS"] ?? "",
-          Condition: r["Condition"] ?? "",
-          Description: r["Description"] ?? "",
-          Created: r["Created"] ?? ""
-        }));
+          if (typeof XLSX === 'undefined') {
+            alert("Excel library not loaded. Please check your internet connection or refresh the page.");
+            return;
+          }
 
-        availableRows = rawRows.filter(r => (r.Availability || "").toLowerCase() === "available")
-          .map(r => ({ ...r, InStore: "Not Scanned", ConditionChoice: "Useable Condition", Comments: "" }));
-        allocatedRows = rawRows.filter(r => (r.Availability || "").toLowerCase() !== "available")
-          .map(r => ({ ...r, SignedContract: "Yes", DueDate: "", Status: "", OverdueActions: "", ConditionChoice: "Useable Condition" }));
-        scanned.clear();
-        elUnknownList.innerHTML = "";
-        elUnknownBox.classList.add("hidden");
+          elFileName.value = file.name.replace(/\.[^.]+$/, "");
+          const ab = await file.arrayBuffer();
+          const wb = XLSX.read(ab, { type: "array" });
 
-        elKpis.classList.remove("hidden");
-        elKpiAvail.textContent = availableRows.length;
-        elKpiAlloc.textContent = allocatedRows.length;
-        elKpiScan.textContent = scanned.size;
+          const sheetName = wb.SheetNames.find(n => /paste/i.test(n)) || wb.SheetNames[0];
+          const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: "" });
 
-        renderAvailable();
-        renderAllocated();
-        elBtnExport.disabled = false;
-        elStats.textContent = `Loaded ${rawRows.length} rows from “${sheetName}”.`;
-        elManual.focus();
+          rawRows = rows.filter((r) => {
+            // Loose matching for headers to handle ODS or variations
+            const keys = Object.keys(r).map(k => k.toLowerCase());
+            const hasItem = keys.some(k => k.includes("item"));
+            const hasSerial = keys.some(k => k.includes("serial"));
+
+            // If we can't find exact headers, we might need to be smarter, but let's stick to original logic first
+            // Original: String(r["Item"]).toLowerCase() === "item"
+            // The ODS might have different column names?
+
+            const maybeHdr = String(r["Item"] || "").toLowerCase() === "item" && String(r["Serial#"] || "").toLowerCase().includes("serial");
+            const allBlank = Object.values(r).every(v => String(v).trim() === "");
+            return !maybeHdr && !allBlank;
+          }).map((r) => ({
+            Item: r["Item"] ?? "",
+            Serial: (String(r["Serial#"] || "")).trim(),
+            SerialDigits: toSerial(r["Serial#"]),
+            SerialDescription: r["Serial Description"] ?? r["SerialDescription"] ?? "",
+            Warehouse: r["Warehouse"] ?? "",
+            Name: r["Name"] ?? "",
+            Availability: (r["Availability"] ?? "").toString().trim(),
+            Contract: r["Contract#"] ?? "",
+            Consign: r["Consign#"] ?? "",
+            CS: r["CS"] ?? "",
+            Repair: r["Repair#"] ?? "",
+            RS: r["RS"] ?? "",
+            Condition: r["Condition"] ?? "",
+            Description: r["Description"] ?? "",
+            Created: r["Created"] ?? ""
+          }));
+
+          availableRows = rawRows.filter(r => (r.Availability || "").toLowerCase() === "available")
+            .map(r => ({ ...r, InStore: "Not Scanned", ConditionChoice: "Useable Condition", Comments: "" }));
+          allocatedRows = rawRows.filter(r => (r.Availability || "").toLowerCase() !== "available")
+            .map(r => ({ ...r, SignedContract: "Yes", DueDate: "", Status: "", OverdueActions: "", ConditionChoice: "Useable Condition" }));
+          scanned.clear();
+          elUnknownList.innerHTML = "";
+          elUnknownBox.classList.add("hidden");
+
+          elKpis.classList.remove("hidden");
+          elKpiAvail.textContent = availableRows.length;
+          elKpiAlloc.textContent = allocatedRows.length;
+          elKpiScan.textContent = scanned.size;
+
+          renderAvailable();
+          renderAllocated();
+          elBtnExport.disabled = false;
+          elStats.textContent = `Loaded ${rawRows.length} rows from “${sheetName}”.`;
+          elManual.focus();
+        } catch (err) {
+          console.error(err);
+          alert("Error loading file: " + err.message);
+        }
       });
 
       function renderAvailable() {
