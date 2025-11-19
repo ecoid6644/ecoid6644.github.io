@@ -13,6 +13,8 @@
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <!-- QR lib -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <!-- html2canvas -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <!-- Custom Styles -->
   <link rel="stylesheet" href="style.css">
 </head>
@@ -72,6 +74,15 @@
               <path d="M12 21v-1" />
             </svg>
             QR Generator
+          </button>
+          <button id="tabBtnJesse" class="tab-btn flex items-center gap-2 rounded-xl px-6 py-2.5 font-semibold text-sm"
+            aria-selected="false">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+            </svg>
+            Jesse's Tools
           </button>
         </nav>
 
@@ -388,6 +399,198 @@
           </div>
         </div>
       </section>
+
+      <!-- Jesse's Tools Tab -->
+      <section id="tab-jesse" class="hidden animate-fade-in space-y-6">
+        <!-- Sub-navigation -->
+        <div class="flex flex-wrap gap-2 justify-center mb-8">
+          <button id="subBtnSim" class="btn-secondary rounded-xl px-6 py-2 font-medium text-sm active-sub-tab">SIM
+            Swap</button>
+          <button id="subBtnSr" class="btn-secondary rounded-xl px-6 py-2 font-medium text-sm">SR Template</button>
+          <button id="subBtnKpi" class="btn-secondary rounded-xl px-6 py-2 font-medium text-sm">KPI Report</button>
+        </div>
+
+        <!-- SIM Swap Tool -->
+        <div id="tool-sim" class="card p-6 md:p-8 max-w-4xl mx-auto">
+          <h2 class="text-2xl font-bold text-slate-800 mb-6">SIM Swap Template Maker</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                <input type="text" id="simName" class="w-full px-4 py-2.5" oninput="simUpdate()">
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Contact Person</label>
+                <div class="flex gap-4">
+                  <label class="flex items-center gap-2 text-sm text-slate-600">
+                    <input type="radio" name="simContact" value="accholder" onchange="simUpdate()" checked> Account
+                    Holder
+                  </label>
+                  <label class="flex items-center gap-2 text-sm text-slate-600">
+                    <input type="radio" name="simContact" value="authcontact" onchange="simUpdate()"> Authorised Contact
+                  </label>
+                </div>
+              </div>
+
+              <div id="simContactedRow" class="hidden">
+                <label class="flex items-center gap-2 text-sm text-slate-600">
+                  <input type="checkbox" id="simAhContacted" onchange="simUpdate()"> Account Holder Contacted
+                </label>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">ID Type</label>
+                <select id="simIdType" class="w-full px-4 py-2.5" onchange="simUpdate()">
+                  <option value="" disabled selected>- Select ID -</option>
+                  <option value="nzdl">NZ Drivers Licence</option>
+                  <option value="nzpp">NZ Passport</option>
+                  <option value="auspp">Australian Passport</option>
+                  <option value="otherpp">Overseas Passport</option>
+                  <option value="nzbc">NZ Birth Certificate & Bank Statement</option>
+                  <option value="coi">Certificate of Identity</option>
+                  <option value="kac">Kiwi Access Card & Bank Statement</option>
+                  <option value="18p">18+ Card & Bank Statement</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">ID'd By</label>
+                <div class="flex gap-4">
+                  <label class="flex items-center gap-2 text-sm text-slate-600">
+                    <input type="radio" name="simIdBy" value="pin" onchange="simUpdate()"> PIN
+                  </label>
+                  <label class="flex items-center gap-2 text-sm text-slate-600">
+                    <input type="radio" name="simIdBy" value="secq" onchange="simUpdate()"> Security Qs
+                  </label>
+                  <label class="flex items-center gap-2 text-sm text-slate-600">
+                    <input type="radio" name="simIdBy" value="otp" onchange="simUpdate()"> OTP (Prepay)
+                  </label>
+                </div>
+              </div>
+
+              <div id="simSecQs" class="hidden space-y-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <div class="flex gap-4 mb-2">
+                  <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                    <input type="radio" name="simQType" value="oa" onchange="simUpdateQs()"> On Account
+                  </label>
+                  <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                    <input type="radio" name="simQType" value="pp" onchange="simUpdateQs()"> Prepay
+                  </label>
+                </div>
+                <div id="simQsList" class="space-y-2 text-sm text-slate-600">
+                  <!-- Questions injected by JS -->
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Swap Reason</label>
+                <input type="text" id="simReason" class="w-full px-4 py-2.5" oninput="simUpdate()">
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Approved By</label>
+                <input type="text" id="simApprover" class="w-full px-4 py-2.5" oninput="simUpdate()">
+              </div>
+            </div>
+
+            <div class="flex flex-col h-full">
+              <label class="block text-sm font-medium text-slate-700 mb-1">Generated Template</label>
+              <textarea id="simTemplate" readonly
+                class="flex-1 w-full p-4 rounded-xl border border-slate-200 bg-slate-50 font-sans text-sm resize-none focus:ring-2 focus:ring-[#00c5a0]/20"
+                rows="12"></textarea>
+              <div class="flex items-center justify-between mt-3">
+                <div class="text-xs text-slate-500">
+                  <span id="simCharCount">0</span>/250 chars <span id="simSecCount" class="text-red-500"></span>
+                </div>
+                <button id="simBtnCopy"
+                  class="btn-primary rounded-xl px-6 py-2 text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled>
+                  Copy to Clipboard
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SR Template Tool -->
+        <div id="tool-sr" class="card p-6 md:p-8 max-w-4xl mx-auto hidden">
+          <h2 class="text-2xl font-bold text-slate-800 mb-6">Service Request (Credit) Template</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Customer Number</label>
+                <input type="text" id="srCxNum" class="w-full px-4 py-2.5" oninput="srUpdate()">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Customer Name</label>
+                <input type="text" id="srCxName" class="w-full px-4 py-2.5" oninput="srUpdate()">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Complaint Ref Number</label>
+                <input type="text" id="srRefNum" class="w-full px-4 py-2.5" oninput="srUpdate()">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Total Amount to Credit</label>
+                <input type="text" id="srAmt" class="w-full px-4 py-2.5" oninput="srUpdate()">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Breakdown / Computation</label>
+                <input type="text" id="srBreakdown" class="w-full px-4 py-2.5" oninput="srUpdate()">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Reason for Credit</label>
+                <input type="text" id="srReason" class="w-full px-4 py-2.5" oninput="srUpdate()">
+              </div>
+            </div>
+
+            <div class="flex flex-col h-full">
+              <label class="block text-sm font-medium text-slate-700 mb-1">Generated Template</label>
+              <textarea id="srTemplate" readonly
+                class="flex-1 w-full p-4 rounded-xl border border-slate-200 bg-slate-50 font-sans text-sm resize-none focus:ring-2 focus:ring-[#00c5a0]/20"
+                rows="12"></textarea>
+              <div class="flex items-center justify-between mt-3">
+                <div class="text-xs text-slate-500">
+                  <span id="srCharCount">0</span>/250 chars
+                </div>
+                <button id="srBtnCopy" class="btn-primary rounded-xl px-6 py-2 text-sm font-bold">
+                  Copy to Clipboard
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI Report Tool -->
+        <div id="tool-kpi" class="card p-6 md:p-8 hidden">
+          <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+            <h2 class="text-2xl font-bold text-slate-800">KPI Tracker Report</h2>
+            <div class="flex gap-3">
+              <div class="relative">
+                <input type="file" id="kpiInput" accept=".tsv, .csv"
+                  class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                <button class="btn-secondary rounded-xl px-6 py-2.5 font-semibold text-sm flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  Upload Sales Report
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="kpiCapture" class="bg-white p-4 rounded-xl overflow-hidden">
+            <table id="kpiTable" class="w-full text-sm text-center border-collapse rounded-xl overflow-hidden"
+              style="border-radius: 1rem;">
+              <!-- Generated by JS -->
+            </table>
+            <p id="kpiCopyright" class="text-center text-xs text-slate-400 mt-4 hidden">Jesse's Toolkit v2.1</p>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer class="text-center text-slate-400 text-sm py-8">
@@ -420,21 +623,50 @@
     (function () {
       const btnLoan = document.getElementById('tabBtnLoan');
       const btnQR = document.getElementById('tabBtnQR');
+      const btnJesse = document.getElementById('tabBtnJesse');
       const tabLoan = document.getElementById('tab-loan');
       const tabQR = document.getElementById('tab-qr');
+      const tabJesse = document.getElementById('tab-jesse');
 
       function show(which) {
-        const isLoan = which === 'loan';
-        tabLoan.classList.toggle('hidden', !isLoan);
-        tabQR.classList.toggle('hidden', isLoan);
-        btnLoan.setAttribute('aria-selected', String(isLoan));
-        btnQR.setAttribute('aria-selected', String(!isLoan));
-        if (!isLoan) {
+        tabLoan.classList.add('hidden');
+        tabQR.classList.add('hidden');
+        tabJesse.classList.add('hidden');
+
+        btnLoan.setAttribute('aria-selected', 'false');
+        btnQR.setAttribute('aria-selected', 'false');
+        btnJesse.setAttribute('aria-selected', 'false');
+
+        // Reset button styles for all tabs
+        [btnLoan, btnQR, btnJesse].forEach(btn => {
+          btn.classList.remove('text-white', 'dark:text-white');
+          btn.classList.add('text-slate-600', 'dark:text-slate-300', 'hover:text-slate-900', 'dark:hover:text-white');
+        });
+
+        if (which === 'loan') {
+          tabLoan.classList.remove('hidden');
+          btnLoan.setAttribute('aria-selected', 'true');
+          btnLoan.classList.add('text-white', 'dark:text-white');
+          btnLoan.classList.remove('text-slate-600', 'dark:text-slate-300', 'hover:text-slate-900', 'dark:hover:text-white');
+        } else if (which === 'qr') {
+          tabQR.classList.remove('hidden');
+          btnQR.setAttribute('aria-selected', 'true');
+          btnQR.classList.add('text-white', 'dark:text-white');
+          btnQR.classList.remove('text-slate-600', 'dark:text-slate-300', 'hover:text-slate-900', 'dark:hover:text-white');
           window.dispatchEvent(new CustomEvent('qr-tab-shown'));
+        } else if (which === 'jesse') {
+          tabJesse.classList.remove('hidden');
+          btnJesse.setAttribute('aria-selected', 'true');
+          btnJesse.classList.add('text-white', 'dark:text-white');
+          btnJesse.classList.remove('text-slate-600', 'dark:text-slate-300', 'hover:text-slate-900', 'dark:hover:text-white');
         }
       }
       btnLoan.addEventListener('click', () => show('loan'));
       btnQR.addEventListener('click', () => show('qr'));
+      btnJesse.addEventListener('click', () => show('jesse'));
+
+      // Initial call to set correct styles based on default selected tab
+      show('loan'); // Assuming 'loan' is the default selected tab
     })();
   </script>
 
@@ -1045,6 +1277,422 @@
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => render(lastUrl), 150);
       }, { passive: true });
+    })();
+  </script>
+  <script>
+    // --------- Jesse's Tools Logic ---------
+    (function () {
+      // --- Tabs ---
+      const btnSim = document.getElementById('subBtnSim');
+      const btnSr = document.getElementById('subBtnSr');
+      const btnKpi = document.getElementById('subBtnKpi');
+      const toolSim = document.getElementById('tool-sim');
+      const toolSr = document.getElementById('tool-sr');
+      const toolKpi = document.getElementById('tool-kpi');
+
+      function showSubTab(which) {
+        [btnSim, btnSr, btnKpi].forEach(b => {
+          b.classList.remove('bg-emerald-600', 'text-white', 'border-transparent');
+          b.classList.add('btn-secondary'); // Reset to secondary style
+        });
+        [toolSim, toolSr, toolKpi].forEach(t => t.classList.add('hidden'));
+
+        if (which === 'sim') {
+          toolSim.classList.remove('hidden');
+          btnSim.classList.remove('btn-secondary');
+          btnSim.classList.add('bg-emerald-600', 'text-white', 'border-transparent');
+        } else if (which === 'sr') {
+          toolSr.classList.remove('hidden');
+          btnSr.classList.remove('btn-secondary');
+          btnSr.classList.add('bg-emerald-600', 'text-white', 'border-transparent');
+        } else if (which === 'kpi') {
+          toolKpi.classList.remove('hidden');
+          btnKpi.classList.remove('btn-secondary');
+          btnKpi.classList.add('bg-emerald-600', 'text-white', 'border-transparent');
+        }
+      }
+
+      btnSim.addEventListener('click', () => showSubTab('sim'));
+      btnSr.addEventListener('click', () => showSubTab('sr'));
+      btnKpi.addEventListener('click', () => showSubTab('kpi'));
+
+      // Initialize sub-tab style
+      showSubTab('sim');
+
+
+      // --- SIM Swap Logic ---
+      const simName = document.getElementById('simName');
+      const simAhContacted = document.getElementById('simAhContacted');
+      const simIdType = document.getElementById('simIdType');
+      const simReason = document.getElementById('simReason');
+      const simApprover = document.getElementById('simApprover');
+      const simTemplate = document.getElementById('simTemplate');
+      const simCharCount = document.getElementById('simCharCount');
+      const simSecCount = document.getElementById('simSecCount');
+      const simBtnCopy = document.getElementById('simBtnCopy');
+      const simQsList = document.getElementById('simQsList');
+
+      const OA_QS = [
+        { text: "How long have you had this mobile number/connection?", value: "Tenure" },
+        { text: "Can you tell me a number that you have called in the last 2 days and they have answered.", value: "Num called last 2 days" },
+        { text: "What method do you usually use to pay your account?", value: "Payment Method" },
+        { text: "What was the most recent payment amount on your account?", value: "Most recent payment on account" },
+        { text: "When did you last call us and what did you discuss?", value: "Last call to One NZ/Details of Call" }
+      ];
+      const PP_QS = [
+        { text: "When did you last top up your number and what was the top up value?", value: "Last topup date & value" },
+        { text: "What are the last four digits of the credit card registered on your ‘My One NZ’ account?", value: "Last 4 Digits Credit Card" },
+        { text: "What is your monthly bundle of minutes, txt’s and data?", value: "Monthly Bundle-Min/Data/Txt" },
+        { text: "How long have you had this mobile number/connection?", value: "Tenure" },
+        { text: "Can you tell me a number that you have called in the last 2 days and they have answered.", value: "Num called last 2 days" }
+      ];
+
+      window.simUpdate = function () {
+        const contact = document.querySelector('input[name="simContact"]:checked').value;
+        const idBy = document.querySelector('input[name="simIdBy"]:checked')?.value || "";
+
+        // Toggle visibility
+        document.getElementById('simContactedRow').classList.toggle('hidden', contact !== 'authcontact');
+        document.getElementById('simSecQs').classList.toggle('hidden', idBy !== 'secq');
+
+        // Build template
+        let t = `Full name: ${simName.value}\n`;
+
+        let cStr = contact === 'accholder' ? "Acc Holder" : "Auth Contact";
+        if (contact === 'authcontact') {
+          cStr += `\nAcc Holder Contacted: ${simAhContacted.checked ? 'Y' : 'N'}`;
+        }
+        t += `Acc Holder/Auth Contact: ${cStr}\n`;
+
+        const idMap = {
+          nzdl: "NZDL", nzpp: "NZ Passport", auspp: "Aus Passport", otherpp: "Overseas Passport",
+          nzbc: "Birth cert & bank statement", coi: "Cert of identity", kac: "Kiwi Access & bank statement", "18p": "18+ & bank statement"
+        };
+        t += `ID Type: ${idMap[simIdType.value] || ""}\n`;
+
+        let idbStr = "";
+        if (idBy === 'pin') idbStr = "PIN";
+        else if (idBy === 'otp') idbStr = "OTP";
+        else if (idBy === 'secq') {
+          const checkedQs = Array.from(document.querySelectorAll('input[name="simQCheck"]:checked')).map(c => c.value);
+          idbStr = `Sec Qs\nQs asked: ${checkedQs.join(', ')}`;
+        }
+        t += `ID'd by: ${idbStr}\n`;
+        t += `Swap reason: ${simReason.value}\n`;
+        t += `Approved by: ${simApprover.value}`;
+
+        simTemplate.value = t;
+        simCharCount.textContent = t.length;
+
+        // Validation
+        let valid = simName.value && simIdType.value && idBy && simReason.value && simApprover.value;
+        if (contact === 'authcontact' && !simAhContacted.checked) valid = false;
+
+        if (idBy === 'secq') {
+          const qCount = document.querySelectorAll('input[name="simQCheck"]:checked').length;
+          simSecCount.textContent = ` | Qs: ${qCount}/2`;
+          if (qCount < 2) valid = false;
+        } else {
+          simSecCount.textContent = "";
+        }
+
+        simBtnCopy.disabled = !valid;
+      };
+
+      window.simUpdateQs = function () {
+        const type = document.querySelector('input[name="simQType"]:checked')?.value;
+        simQsList.innerHTML = "";
+        if (!type) return;
+
+        const qs = type === 'oa' ? OA_QS : PP_QS;
+        qs.forEach(q => {
+          const div = document.createElement('div');
+          div.className = "flex items-start gap-2";
+          div.innerHTML = `<input type="checkbox" name="simQCheck" value="${q.value}" onchange="simUpdate()" class="mt-1"> <span>${q.text}</span>`;
+          simQsList.appendChild(div);
+        });
+        simUpdate();
+      };
+
+      simBtnCopy.addEventListener('click', () => {
+        navigator.clipboard.writeText(simTemplate.value);
+        const original = simBtnCopy.textContent;
+        simBtnCopy.textContent = "Copied!";
+        setTimeout(() => simBtnCopy.textContent = original, 1500);
+      });
+
+
+      // --- SR Template Logic ---
+      window.srUpdate = function () {
+        const cxNum = document.getElementById('srCxNum').value;
+        const cxName = document.getElementById('srCxName').value;
+        const refNum = document.getElementById('srRefNum').value;
+        const amt = document.getElementById('srAmt').value;
+        const bd = document.getElementById('srBreakdown').value;
+        const reason = document.getElementById('srReason').value;
+
+        let t = `Customer number: ${cxNum}\nCustomer name: ${cxName}\n`;
+        if (refNum) t += `Complaint reference number: ${refNum}\n`;
+        t += `Total amount to be credited: ${amt}\n`;
+        t += `Breakdown/computation with respective month of invoice and charge: ${bd}\n`;
+        t += `Reason for credit: ${reason}`;
+
+        document.getElementById('srTemplate').value = t;
+        document.getElementById('srCharCount').textContent = t.length;
+      };
+
+      document.getElementById('srBtnCopy').addEventListener('click', () => {
+        navigator.clipboard.writeText(document.getElementById('srTemplate').value);
+        const btn = document.getElementById('srBtnCopy');
+        const original = btn.textContent;
+        btn.textContent = "Copied!";
+        setTimeout(() => btn.textContent = original, 1500);
+      });
+
+
+      // --- KPI Report Logic ---
+      const kpiInput = document.getElementById('kpiInput');
+      const kpiTable = document.getElementById('kpiTable');
+      const kpiBtnScreenshot = document.getElementById('kpiBtnScreenshot');
+
+      const KPI_HEADERS = [
+        { heading: "", sub: ["rep"] },
+        { heading: "Legends", sub: ["coa", "boa", "cfab", "bfab", "oneup", "gm"] },
+        { heading: "GP", sub: ["gp"] },
+        { heading: "Connections", sub: ["p2p", "rs", "ict"] },
+        { heading: "Other", sub: ["dev", "accs", "trend", "bills", "topup", "pp", "com"] }
+      ];
+      const KPI_COLS = {
+        rep: "Rep", gp: "Gross Profit", gm: "Gen Merch", coa: "Con OA", cfab: "Con FAB",
+        boa: "Bus OA", bfab: "Bus FAB", p2p: "P2P", rs: "Resigns", ict: "ICT",
+        dev: "Devices", accs: "Accs", trend: "Trend", pp: "Prepay", oneup: "One Up",
+        topup: "Top-ups", bills: "Bills", com: "Commission"
+      };
+      const KPI_COMMISSION = {
+        dev: 0.05, gm: 0.1, pp: 2, oneup: 5, fbb: 13, fbbrs: 6.5, busifbb: 20, busifbbrs: 6.5,
+        wbb: 13, wbbrs: 6.5, companion: 7.5, companionrs: 0, p2p: 3, edsmall: 4, edsmallrs: 1,
+        edmedium: 7.5, edmediumrs: 1, edlarge: 12, edlargers: 5, oneplan: 20, oneplanrs: 7, tollfree: 10,
+        webex: 10, multitxt: 15, saas: 5, mcd: 5, payg: 2, assets: 10, watch: 5
+      };
+      const DOLLAR_COLS = ["gp", "gm", "com"];
+      let kpiSortCol = 'gp';
+      let kpiProcessedData = {};
+      let kpiSubHeadings = KPI_HEADERS.flatMap(h => h.sub);
+
+      kpiInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const raw = readTSV(ev.target.result);
+          processKpiData(raw);
+          renderKpiTable();
+        };
+        reader.readAsText(file);
+      });
+
+      function readTSV(text) {
+        const rows = text.split("\n").map(r => r.split("\t"));
+        const headers = rows.shift();
+        return rows.map(r => {
+          let obj = {};
+          r.forEach((cell, i) => obj[headers[i]] = cell.trimEnd());
+          return obj;
+        });
+      }
+
+      function processKpiData(data) {
+        let report = {};
+        data.forEach(row => {
+          let rep = row['Order Rep Name'];
+          let code = row['Item Code'];
+          let rrp = parseFloat(row['Recommended Retail Price'] || 0);
+          let gp = parseFloat(row['Shipped GP'] || 0);
+          let qty = parseInt(row['Shipped Quantity'] || 0);
+
+          if (!rep || rep === "Click N Collect") return;
+          if (qty === 0 && rrp === 0) return;
+          if (rrp !== 0 && qty > 0 && gp < 0) return; // Skip transfers/write-offs
+          if ((code || "").includes("-NOADDON") || (code || "").includes("-ADD-VO")) return;
+
+          if (rrp === 0 && !(row['Product Group'] || "").includes("Top Up")) qty *= -1;
+
+          if (!report[rep]) {
+            report[rep] = { rep };
+            Object.keys(KPI_COLS).forEach(k => { if (k !== 'rep') report[rep][k] = 0; });
+          }
+
+          const pg = row['Product Group'];
+          const r = report[rep];
+
+          // Logic ported from jesse.html
+          if (pg === 'ConsNC Voice Smart Data') { r.coa += qty; r.gp += gp * 5; r.com += gp; }
+          else if (pg === 'ConsPP Voice Smart Data PPN') { r.p2p += qty; r.gp += gp * 5; r.com += gp; }
+          else if (pg === 'ConsRS Voice Smart Data') { r.rs += qty; r.gp += gp * 5; r.com += gp; }
+          else if (['BussNC Voice Smart Data', 'BussNC Bundle Add-on Bundle', 'BussNC Bundle IOT', 'BussNC Data MBB'].includes(pg)) { r.boa += qty; r.gp += gp * 5; r.com += gp; }
+          else if (pg === 'BussPP Voice Smart Data PPN') { r.p2p += qty; r.gp += gp * 5; r.com += gp; }
+          else if (['BussRS Data MBB', 'BussRS Voice Smart Data'].includes(pg)) { r.rs += qty; r.gp += gp * 5; r.com += gp; }
+          else if (pg === 'ConsNC FAB HM BB') { r.cfab += qty; r.gp += gp * 5; r.com += gp; }
+          else if (pg === 'ConsRS FAB HM BB') { r.rs += qty; r.gp += gp * 5; r.com += gp; }
+          else if (pg === 'BussNC FAB WK BB') { r.bfab += qty; r.gp += gp * 5; r.com += gp; }
+          else if (pg === 'BussRS FAB WK BB') { r.rs += qty; r.gp += gp * 5; r.com += gp; }
+          else if (pg === 'BussNC ICT') { r.ict -= qty; r.com += gp; }
+          else if (['Live HSDPA', 'Business HSDPA', 'Tablet'].includes(pg)) { r.dev += qty; r.gp += gp; }
+          else if (pg === 'CST Device') { r.dev += qty; r.gp += gp; r.com += KPI_COMMISSION.dev * gp + KPI_COMMISSION.watch * qty; }
+          else if (['CST Accessories', 'Adapters', 'Bluetooth Headset', 'Bundles', 'Cases', 'Chargers', 'Entertainment and Gaming', 'Holders/Cradles', 'Memory', 'Screen Protectors', 'Other'].includes(pg)) { r.accs += qty; r.gp += gp; r.gm += gp; r.com += KPI_COMMISSION.gm * gp; }
+          else if (['Antivirus 1 Year Subscription', 'Antivirus 2 Year Subscription', 'Antivirus 3 Year Subscription', 'Antivirus - Prepay'].includes(pg)) { r.trend += qty; r.gp += gp; r.gm += gp; r.com += KPI_COMMISSION.gm * gp; }
+          else if (pg === 'Prepay') { r.pp += qty; r.gp += gp; r.com += qty * KPI_COMMISSION.pp; }
+          else if (pg === 'IFP Commission Line Group') {
+            if (code === 'IFP-UPGRADEADD') { r.oneup += qty; r.com += qty * KPI_COMMISSION.oneup; }
+            if (code === 'IFP-COMM') { r.gp += gp * 5; }
+          }
+          else if (['Prepay Mobile Top Up', 'Prepay Direct Top Up'].includes(pg)) { r.topup += qty; }
+          else if (pg === 'Mobile On Account Bill Payment') { r.bills -= qty; }
+          else if (pg === 'MDP') { r.gp += gp; }
+        });
+        kpiProcessedData = report;
+      }
+
+      function renderKpiTable() {
+        kpiTable.innerHTML = "";
+        if (Object.keys(kpiProcessedData).length === 0) return;
+
+        // Sort
+        let rows = Object.values(kpiProcessedData);
+        rows.sort((a, b) => {
+          if (kpiSortCol === 'rep') return a.rep.localeCompare(b.rep);
+          return b[kpiSortCol] - a[kpiSortCol];
+        });
+
+        // Calculate Totals
+        let totals = { rep: "Totals" };
+        kpiSubHeadings.forEach(k => {
+          if (k !== 'rep') {
+            totals[k] = rows.reduce((sum, r) => sum + (r[k] || 0), 0);
+          }
+        });
+        // Create Table Structure
+        // Header 1 (Groups) - Glassmorphism effect
+        const thead = document.createElement('thead');
+        const tr1 = document.createElement('tr');
+        tr1.className = "bg-white/60 dark:bg-slate-700/90 backdrop-blur-sm text-slate-700 dark:text-white text-sm uppercase tracking-wide border-b border-white/50 dark:border-slate-500/50 shadow-sm";
+        tr1.style.backdropFilter = "blur(12px)";
+        tr1.style.borderRadius = "1rem 1rem 0 0";
+        KPI_HEADERS.forEach(h => {
+          const th = document.createElement('th');
+          th.textContent = h.heading;
+          th.colSpan = h.sub.length;
+          th.className = "px-2 py-4 font-bold text-center border-r border-white/30 last:border-r-0";
+          if (h.heading === "") {
+            th.className = "px-2 py-4 bg-white/60 dark:bg-slate-700/90 backdrop-blur-sm border-r-0"; // Empty corner - no border
+            th.style.backdropFilter = "blur(12px)";
+          }
+          tr1.appendChild(th);
+        });
+        thead.appendChild(tr1);
+
+        // Header 2 (Columns) - Frosted glass effect
+        const tr2 = document.createElement('tr');
+        tr2.className = "bg-gradient-to-b from-white/80 to-white/60 dark:from-slate-600/90 dark:to-slate-700/90 backdrop-blur-md text-slate-800 dark:text-white text-sm font-bold border-b-2 border-emerald-200/50 dark:border-slate-500/50 shadow-sm";
+        tr2.style.backdropFilter = "blur(16px)";
+        kpiSubHeadings.forEach(k => {
+          const th = document.createElement('th');
+          th.textContent = KPI_COLS[k];
+          th.className = "px-2 py-4 text-left cursor-pointer hover:bg-emerald-100/40 hover:shadow-inner transition-all duration-300 select-none border-r border-white/20 last:border-r-0 rounded-md";
+          if (k === kpiSortCol) {
+            th.classList.add("text-emerald-700", "bg-emerald-50/60", "font-extrabold", "shadow-inner");
+          }
+          th.onclick = () => { kpiSortCol = k; renderKpiTable(); };
+          tr2.appendChild(th);
+        });
+        thead.appendChild(tr2);
+        kpiTable.appendChild(thead);
+
+        // Body - Glass cards effect
+        const tbody = document.createElement('tbody');
+        tbody.className = "divide-y divide-slate-200/30";
+        rows.forEach((r, i) => {
+          const tr = document.createElement('tr');
+          tr.className = "bg-white/40 dark:bg-slate-700/40 backdrop-blur-sm hover:bg-slate-50/80 dark:hover:from-slate-600/60 dark:hover:to-slate-700/40 hover:shadow-md transition-all duration-300 group border-b border-white/20 dark:border-slate-600/20";
+          tr.style.backdropFilter = "blur(8px)";
+          kpiSubHeadings.forEach(k => {
+            const td = document.createElement('td');
+            td.className = "px-2 py-5 text-sm text-slate-700 dark:text-white border-r border-white/10 dark:border-slate-600/10 last:border-r-0";
+
+            let val = r[k];
+
+            // Special styling for Rep column
+            if (k === 'rep') {
+              td.className = "px-2 py-5 text-base font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 group-hover:scale-105 transition-all duration-300 whitespace-nowrap border-r border-white/10 dark:border-slate-600/10 last:border-r-0";
+            }
+
+            // Special styling for Money columns - Glass pill effect
+            if (DOLLAR_COLS.includes(k)) {
+              td.textContent = val.toLocaleString('en-NZ', { style: 'currency', currency: 'NZD' });
+              td.classList.add("font-bold", "text-right", "tabular-nums");
+              if (k === 'gp') {
+                td.classList.add("text-emerald-900", "!text-emerald-900", "dark:!text-emerald-100", "text-base", "bg-gradient-to-br", "from-emerald-100/70", "to-emerald-50/40", "dark:from-emerald-900/60", "dark:to-emerald-800/40", "backdrop-blur-sm", "shadow-inner", "rounded-lg", "px-3", "py-2");
+                td.style.backdropFilter = "blur(8px)";
+              } else if (k === 'com') {
+                td.classList.add("text-teal-900", "!text-teal-900", "dark:!text-teal-100", "text-base", "bg-gradient-to-br", "from-teal-100/70", "to-teal-50/40", "dark:from-teal-900/60", "dark:to-teal-800/40", "backdrop-blur-sm", "shadow-inner", "rounded-lg", "px-3", "py-2");
+                td.style.backdropFilter = "blur(8px)";
+              } else {
+                td.classList.add("text-slate-800", "dark:text-white", "bg-slate-50/30", "dark:bg-slate-700/50", "rounded", "px-2");
+              }
+            } else {
+              td.textContent = val;
+              if (k !== 'rep') {
+                td.classList.add("text-center", "font-semibold", "text-slate-600", "dark:text-white");
+              }
+            }
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+        kpiTable.appendChild(tbody);
+
+        // Footer (Totals) - Beautiful emerald gradient
+        const tfoot = document.createElement('tfoot');
+        const trF = document.createElement('tr');
+        trF.className = "bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 backdrop-blur-xl text-white font-bold text-base shadow-2xl border-t-4 border-emerald-400/50 relative";
+        trF.style.backdropFilter = "blur(20px)";
+        trF.style.boxShadow = "0 -4px 20px rgba(16, 185, 129, 0.25), 0 4px 30px rgba(16, 185, 129, 0.15)";
+        trF.style.borderRadius = "0 0 1rem 1rem";
+        kpiSubHeadings.forEach(k => {
+          const td = document.createElement('td');
+          td.className = "px-2 py-6 border-r border-emerald-400/20 last:border-r-0";
+          let val = totals[k];
+          if (DOLLAR_COLS.includes(k)) {
+            td.textContent = val.toLocaleString('en-NZ', { style: 'currency', currency: 'NZD' });
+            td.classList.add("text-right", "tabular-nums", "tracking-wide", "text-white", "drop-shadow-lg");
+          } else {
+            td.textContent = val;
+            if (k !== 'rep') td.classList.add("text-center");
+            td.classList.add("drop-shadow-md");
+          }
+          trF.appendChild(td);
+        });
+        tfoot.appendChild(trF);
+        kpiTable.appendChild(tfoot);
+
+        document.getElementById('kpiCopyright').classList.remove('hidden');
+        kpiBtnScreenshot.classList.remove('hidden');
+      }
+
+      kpiBtnScreenshot.addEventListener('click', async () => {
+        const el = document.getElementById('kpiCapture');
+        try {
+          const canvas = await html2canvas(el);
+          canvas.toBlob(async (blob) => {
+            await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+            alert("Screenshot copied to clipboard!");
+          });
+        } catch (err) {
+          console.error(err);
+          alert("Screenshot failed.");
+        }
+      });
+
     })();
   </script>
 </body>
