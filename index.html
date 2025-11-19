@@ -33,45 +33,71 @@
           </svg>
         </div>
         <div>
-          <h1 class="text-3xl font-bold tracking-tight text-slate-900">One NZ <span
+          <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">One NZ <span
               class="text-slate-400 font-light">|</span> Preston's Toolkit</h1>
-          <p class="text-sm text-slate-500 font-medium">Loan Audit & QR Generator</p>
+          <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Loan Audit & QR Generator</p>
         </div>
       </div>
 
-      <nav class="flex p-1 bg-white/50 backdrop-blur rounded-2xl border border-slate-200/60 shadow-sm">
-        <button id="tabBtnLoan" class="tab-btn flex items-center gap-2 rounded-xl px-6 py-2.5 font-semibold text-sm"
-          aria-selected="true">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <path d="M16 13H8" />
-            <path d="M16 17H8" />
-            <path d="M10 9H8" />
+      <div class="flex items-center gap-3">
+        <nav
+          class="flex p-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
+          <button id="tabBtnLoan" class="tab-btn flex items-center gap-2 rounded-xl px-6 py-2.5 font-semibold text-sm"
+            aria-selected="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <path d="M16 13H8" />
+              <path d="M16 17H8" />
+              <path d="M10 9H8" />
+            </svg>
+            Loan Audit
+          </button>
+          <button id="tabBtnQR" class="tab-btn flex items-center gap-2 rounded-xl px-6 py-2.5 font-semibold text-sm"
+            aria-selected="false">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="5" height="5" x="3" y="3" rx="1" />
+              <rect width="5" height="5" x="16" y="3" rx="1" />
+              <rect width="5" height="5" x="3" y="16" rx="1" />
+              <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+              <path d="M21 21v.01" />
+              <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+              <path d="M3 12h.01" />
+              <path d="M12 3h.01" />
+              <path d="M12 16v.01" />
+              <path d="M16 12h1" />
+              <path d="M21 12v.01" />
+              <path d="M12 21v-1" />
+            </svg>
+            QR Generator
+          </button>
+        </nav>
+
+        <button id="darkModeToggle"
+          class="p-2.5 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+          aria-label="Toggle dark mode">
+          <svg id="iconLight" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="text-slate-600 dark:hidden">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2" />
+            <path d="M12 20v2" />
+            <path d="m4.93 4.93 1.41 1.41" />
+            <path d="m17.66 17.66 1.41 1.41" />
+            <path d="M2 12h2" />
+            <path d="M20 12h2" />
+            <path d="m6.34 17.66-1.41 1.41" />
+            <path d="m19.07 4.93-1.41 1.41" />
           </svg>
-          Loan Audit
-        </button>
-        <button id="tabBtnQR" class="tab-btn flex items-center gap-2 rounded-xl px-6 py-2.5 font-semibold text-sm"
-          aria-selected="false">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect width="5" height="5" x="3" y="3" rx="1" />
-            <rect width="5" height="5" x="16" y="3" rx="1" />
-            <rect width="5" height="5" x="3" y="16" rx="1" />
-            <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
-            <path d="M21 21v.01" />
-            <path d="M12 7v3a2 2 0 0 1-2 2H7" />
-            <path d="M3 12h.01" />
-            <path d="M12 3h.01" />
-            <path d="M12 16v.01" />
-            <path d="M16 12h1" />
-            <path d="M21 12v.01" />
-            <path d="M12 21v-1" />
+          <svg id="iconDark" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="text-slate-300 hidden dark:block">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
           </svg>
-          QR Generator
         </button>
-      </nav>
+      </div>
     </header>
 
     <main class="relative min-h-[600px]">
@@ -79,19 +105,45 @@
       <section id="tab-loan" class="space-y-6 animate-fade-in">
 
         <!-- Step 1: Upload -->
-        <div class="card p-6 md:p-8">
+        <div class="card p-6 md:p-8 relative z-10">
           <div class="flex items-center gap-3 mb-6">
             <div
               class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">
               1</div>
-            <h2 class="text-xl font-bold text-slate-800">Upload Serial Report</h2>
+            <div class="flex items-center gap-2">
+              <h2 class="text-xl font-bold text-slate-800">Upload Serial Report</h2>
+              <div class="relative group">
+                <button class="text-slate-400 hover:text-[#00c5a0] transition-colors cursor-help" aria-label="Help">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                    <path d="M12 17h.01" />
+                  </svg>
+                </button>
+                <div
+                  class="absolute left-0 top-full mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-100 p-4 z-20 hidden group-hover:block animate-fade-in">
+                  <h4 class="font-bold text-slate-800 mb-2 text-sm">How to Get a Loan Serial Enquiry Report</h4>
+                  <ol class="list-decimal pl-4 text-xs text-slate-600 space-y-2">
+                    <li>Log in to Pronto.</li>
+                    <li>Click <strong>Loans and Repairs</strong> &rarr; <strong>Serial Enquiry</strong>.</li>
+                    <li>At the top, select your warehouse (Z + Store Name).</li>
+                    <li><strong>Export the report:</strong>
+                      <ul class="list-disc pl-4 mt-1 space-y-1 text-slate-500">
+                        <li><em>Installed:</em> Right-click tab &rarr; Export Data.</li>
+                        <li><em>Web:</em> Settings (cog) &rarr; Export Data.</li>
+                      </ul>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div
             class="flex flex-col md:flex-row gap-4 items-start md:items-center bg-slate-50/50 p-4 rounded-xl border border-slate-100">
             <input id="fileInput" type="file"
               class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#00c5a0]/10 file:text-[#046b30] hover:file:bg-[#00c5a0]/20 transition-all" />
-            <div id="loadStats" class="text-sm font-medium text-slate-600"></div>
           </div>
 
           <!-- KPIs -->
@@ -344,6 +396,26 @@
   </div>
 
   <script>
+    // --------- Dark Mode Toggle ---------
+    (function () {
+      const toggle = document.getElementById('darkModeToggle');
+      const html = document.documentElement;
+
+      // Check for saved preference or default to light mode
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      if (savedTheme === 'dark') {
+        html.classList.add('dark');
+      }
+
+      toggle.addEventListener('click', () => {
+        html.classList.toggle('dark');
+        const isDark = html.classList.contains('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      });
+    })();
+  </script>
+
+  <script>
     // --------- Tab Switcher ---------
     (function () {
       const btnLoan = document.getElementById('tabBtnLoan');
@@ -372,7 +444,7 @@
       const toSerial = (v) => {
         if (v === null || v === undefined) return "";
         const s = String(v).trim();
-        return s.replace(/\\D/g, "");
+        return s.replace(/\D/g, "");
       };
 
       const CONDITION_OPTIONS = [
@@ -391,6 +463,13 @@
         "Pending Check": "Run Check"
       };
 
+      const STATUS_ACTION_ROWS = [
+        { status: "Within Timeframe", action: "No Action" },
+        { status: "Overdue: Less than 2 weeks", action: "Contact customer to return device. Set clear timeframe of a week to have device returned or customer will be charged unless a new reasonable timeframe is agree by customer and Retail Lead. Return device and re issue new agreement with new timeframe as due date. Send customer email clearly stating new timeframe." },
+        { status: "Overdue: More than 2 weeks", action: "Contact customer to return device. Set clear timeframe of a 3 days to have device returned or customer will be charged. If customer is not contactable, Blocklist device an await  3 days for the customer to return. If not returned, return device in pronto, raise request with sales operations to charge the customer and remove the device from your fleet." },
+        { status: "Missing a signed contract instore", action: "Investigate why there is no contract with person who issued loan phone, provide appropriate action e.g., training/set expectations. Contact customer to arrange time to re visit store and sign contract." }
+      ];
+
       let rawRows = [];
       let availableRows = [];
       let allocatedRows = [];
@@ -398,7 +477,7 @@
 
       // Elements
       const elFile = document.getElementById("fileInput");
-      const elStats = document.getElementById("loadStats");
+      // const elStats = document.getElementById("loadStats"); // Removed
       const elKpis = document.getElementById("kpis");
       const elKpiAvail = document.getElementById("kpiAvailable");
       const elKpiAlloc = document.getElementById("kpiAllocated");
@@ -429,7 +508,7 @@
             return;
           }
 
-          elFileName.value = file.name.replace(/\.[^.]+$/, "");
+          // elFileName.value = file.name.replace(/\.[^.]+$/, "");
           const ab = await file.arrayBuffer();
           const wb = XLSX.read(ab, { type: "array" });
 
@@ -483,7 +562,7 @@
           renderAvailable();
           renderAllocated();
           elBtnExport.disabled = false;
-          elStats.textContent = `Loaded ${rawRows.length} rows from “${sheetName}”.`;
+          // elStats.textContent = `Loaded ${rawRows.length} rows from “${sheetName}”.`;
           elManual.focus();
         } catch (err) {
           console.error(err);
@@ -524,6 +603,29 @@
         updateCounts();
       }
 
+      function getStatusAndAction(r) {
+        let status = "Within Timeframe";
+        if (r.SignedContract === "No") {
+          status = "Missing a signed contract instore";
+        } else if (r.DueDate) {
+          const due = new Date(r.DueDate);
+          const today = new Date();
+          // Reset times to compare dates only
+          due.setHours(0, 0, 0, 0);
+          today.setHours(0, 0, 0, 0);
+
+          const diffTime = today - due;
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          if (diffDays > 14) status = "Overdue: More than 2 weeks";
+          else if (diffDays > 0) status = "Overdue: Less than 2 weeks";
+        }
+
+        const actionObj = STATUS_ACTION_ROWS.find(x => x.status === status);
+        const action = actionObj ? actionObj.action : "";
+        return { status, action };
+      }
+
       function renderAllocated() {
         elTblAllocBody.innerHTML = "";
         const max = Math.min(400, allocatedRows.length);
@@ -532,16 +634,32 @@
           const tr = document.createElement("tr"); tr.className = "border-b hover:bg-slate-50";
           const tdS = document.createElement("td"); tdS.className = "p-3 mono font-medium"; tdS.textContent = r.SerialDigits || r.Serial;
           const tdI = document.createElement("td"); tdI.className = "p-3"; tdI.textContent = r.Item;
+
           const tdSC = document.createElement("td"); tdSC.className = "p-3";
           const sel = document.createElement("select"); sel.className = "border rounded-lg px-2 py-1.5 text-sm bg-white focus:ring-2 focus:ring-[#00c5a0]/20";
           ["Yes", "No"].forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; if (r.SignedContract === v) o.selected = true; sel.appendChild(o); });
-          sel.addEventListener("change", (e) => r.SignedContract = e.target.value);
+          sel.addEventListener("change", (e) => {
+            r.SignedContract = e.target.value;
+            const { status, action } = getStatusAndAction(r);
+            tdStatus.textContent = status;
+            tdAct.textContent = action;
+          });
+          tdSC.appendChild(sel);
+
           const tdDue = document.createElement("td"); tdDue.className = "p-3";
           const inp = document.createElement("input"); inp.type = "date"; inp.className = "border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-[#00c5a0]/20"; inp.value = r.DueDate || "";
-          inp.addEventListener("input", (e) => r.DueDate = e.target.value);
-          tdSC.appendChild(sel); tdDue.appendChild(inp);
-          const tdStatus = document.createElement("td"); tdStatus.className = "p-3 text-slate-400 italic text-xs"; tdStatus.textContent = "(Excel formula)";
-          const tdAct = document.createElement("td"); tdAct.className = "p-3 text-slate-400 italic text-xs"; tdAct.textContent = "(Excel XLOOKUP)";
+          inp.addEventListener("input", (e) => {
+            r.DueDate = e.target.value;
+            const { status, action } = getStatusAndAction(r);
+            tdStatus.textContent = status;
+            tdAct.textContent = action;
+          });
+          tdDue.appendChild(inp);
+
+          const { status, action } = getStatusAndAction(r);
+          const tdStatus = document.createElement("td"); tdStatus.className = "p-3 text-slate-600 text-xs font-medium"; tdStatus.textContent = status;
+          const tdAct = document.createElement("td"); tdAct.className = "p-3 text-slate-500 text-xs"; tdAct.textContent = action;
+
           tr.append(tdS, tdI, tdSC, tdDue, tdStatus, tdAct);
           elTblAllocBody.appendChild(tr);
         }
@@ -591,12 +709,7 @@
 
           const dv = wb.addWorksheet("Data Validation");
           dv.addRow(["status", "Device condition", "Store actions"]);
-          const STATUS_ACTION_ROWS = [
-            { status: "Within Timeframe", action: "No Action" },
-            { status: "Overdue: Less than 2 weeks", action: "Contact customer to return device. Set clear timeframe of a week to have device returned or customer will be charged unless a new reasonable timeframe is agree by customer and Retail Lead. Return device and re issue new agreement with new timeframe as due date. Send customer email clearly stating new timeframe." },
-            { status: "Overdue: More than 2 weeks", action: "Contact customer to return device. Set clear timeframe of a 3 days to have device returned or customer will be charged. If customer is not contactable, Blocklist device an await  3 days for the customer to return. If not returned, return device in pronto, raise request with sales operations to charge the customer and remove the device from your fleet." },
-            { status: "Missing a signed contract instore", action: "Investigate why there is no contract with person who issued loan phone, provide appropriate action e.g., training/set expectations. Contact customer to arrange time to re visit store and sign contract." }
-          ];
+          // STATUS_ACTION_ROWS is now in parent scope
           STATUS_ACTION_ROWS.forEach(r => dv.addRow([r.status, "", r.action]));
           const condToAction = {
             "Useable Condition": "Ensure device is reset, charged and ready to be loaned out",
