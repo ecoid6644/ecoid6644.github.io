@@ -1,591 +1,754 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>One NZ — Tools (Loan Audit + QR Generator)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>One NZ — Tools</title>
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- SheetJS (read) + ExcelJS (write) for Loan Audit -->
+  <!-- SheetJS (read) + ExcelJS (write) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <!-- QR lib -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-  <style>
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-    .card { background: white; border-radius: 1rem; box-shadow: 0 10px 20px rgba(0,0,0,0.06); }
-    .tab-btn[aria-selected="true"] { background:#0f172a; color:#fff; }
-    .tab-btn { background: #e2e8f0; color:#0f172a; }
-  </style>
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900">
-  <div class="max-w-7xl mx-auto p-4 md:p-6">
-    <header class="mb-4 md:mb-6">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <h1 class="text-2xl md:text-3xl font-bold">One NZ — Tools</h1>
-        <nav class="flex gap-2">
-          <button id="tabBtnLoan" class="tab-btn rounded-2xl px-4 py-2 font-semibold" aria-selected="true">Loan Audit</button>
-          <button id="tabBtnQR" class="tab-btn rounded-2xl px-4 py-2 font-semibold" aria-selected="false">QR Generator</button>
-        </nav>
+
+<body class="p-4 md:p-8 lg:p-12">
+
+  <div class="max-w-7xl mx-auto space-y-8">
+
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 animate-fade-in">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#046b30] to-[#00c5a0] flex items-center justify-center text-white shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold tracking-tight text-slate-900">One NZ <span
+              class="text-slate-400 font-light">|</span> Tools</h1>
+          <p class="text-sm text-slate-500 font-medium">Loan Audit & QR Generator</p>
+        </div>
       </div>
+
+      <nav class="flex p-1 bg-white/50 backdrop-blur rounded-2xl border border-slate-200/60 shadow-sm">
+        <button id="tabBtnLoan" class="tab-btn flex items-center gap-2 rounded-xl px-6 py-2.5 font-semibold text-sm"
+          aria-selected="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <path d="M16 13H8" />
+            <path d="M16 17H8" />
+            <path d="M10 9H8" />
+          </svg>
+          Loan Audit
+        </button>
+        <button id="tabBtnQR" class="tab-btn flex items-center gap-2 rounded-xl px-6 py-2.5 font-semibold text-sm"
+          aria-selected="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="5" height="5" x="3" y="3" rx="1" />
+            <rect width="5" height="5" x="16" y="3" rx="1" />
+            <rect width="5" height="5" x="3" y="16" rx="1" />
+            <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+            <path d="M21 21v.01" />
+            <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+            <path d="M3 12h.01" />
+            <path d="M12 3h.01" />
+            <path d="M12 16v.01" />
+            <path d="M16 12h1" />
+            <path d="M21 12v.01" />
+            <path d="M12 21v-1" />
+          </svg>
+          QR Generator
+        </button>
+      </nav>
     </header>
 
-    <main>
+    <main class="relative min-h-[600px]">
       <!-- Loan Audit Tab -->
-      <section id="tab-loan" class="space-y-5">
-        <div class="card p-5">
-          <h2 class="text-xl font-semibold mb-3">1) Upload serial report</h2>
-          <div class="flex flex-col md:flex-row gap-3 items-start md:items-center">
-            <input id="fileInput" type="file" class="block"/>
-            <div id="loadStats" class="text-sm text-slate-600"></div>
+      <section id="tab-loan" class="space-y-6 animate-fade-in">
+
+        <!-- Step 1: Upload -->
+        <div class="card p-6 md:p-8">
+          <div class="flex items-center gap-3 mb-6">
+            <div
+              class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">
+              1</div>
+            <h2 class="text-xl font-bold text-slate-800">Upload Serial Report</h2>
           </div>
-          <div id="kpis" class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 hidden">
-            <div class="bg-slate-100 rounded-xl p-3">
-              <div class="text-xs text-slate-500">Available</div>
-              <div id="kpiAvailable" class="text-2xl font-semibold">0</div>
+
+          <div
+            class="flex flex-col md:flex-row gap-4 items-start md:items-center bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+            <input id="fileInput" type="file"
+              class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#00c5a0]/10 file:text-[#046b30] hover:file:bg-[#00c5a0]/20 transition-all" />
+            <div id="loadStats" class="text-sm font-medium text-slate-600"></div>
+          </div>
+
+          <!-- KPIs -->
+          <div id="kpis" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 hidden animate-slide-in">
+            <div
+              class="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+              <div class="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-1">Available</div>
+              <div id="kpiAvailable" class="text-3xl font-bold text-emerald-700">0</div>
             </div>
-            <div class="bg-slate-100 rounded-xl p-3">
-              <div class="text-xs text-slate-500">Allocated</div>
-              <div id="kpiAllocated" class="text-2xl font-semibold">0</div>
+            <div
+              class="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+              <div class="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">Allocated</div>
+              <div id="kpiAllocated" class="text-3xl font-bold text-blue-700">0</div>
             </div>
-            <div class="bg-slate-100 rounded-xl p-3">
-              <div class="text-xs text-slate-500">Scanned (unique)</div>
-              <div id="kpiScanned" class="text-2xl font-semibold">0</div>
+            <div
+              class="bg-purple-50/50 border border-purple-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+              <div class="text-xs font-semibold text-purple-600 uppercase tracking-wider mb-1">Scanned (Unique)</div>
+              <div id="kpiScanned" class="text-3xl font-bold text-purple-700">0</div>
             </div>
           </div>
         </div>
 
-        <div class="card p-5">
-          <h2 class="text-xl font-semibold mb-3">2) Scan devices in-store</h2>
-          <div>
-            <label class="text-sm font-medium">Use your USB barcode scanner (auto-add on Enter/Tab)</label>
-            <div class="flex items-center gap-2 mt-2">
-              <input id="manualSerial" autofocus placeholder="Click here and start scanning — auto-add on Enter/Tab"
-                    class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"/>
-              <button id="btnAddSerial" class="rounded-2xl px-4 py-2 border">Add</button>
+        <!-- Step 2: Scan -->
+        <div class="card p-6 md:p-8 delay-100">
+          <div class="flex items-center gap-3 mb-6">
+            <div
+              class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">
+              2</div>
+            <h2 class="text-xl font-bold text-slate-800">Scan Devices In-Store</h2>
+          </div>
+
+          <div class="space-y-4">
+            <label class="text-sm font-medium text-slate-600 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+                <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+                <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+                <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+              </svg>
+              Use your USB barcode scanner (auto-add on Enter/Tab)
+            </label>
+            <div class="flex items-center gap-3">
+              <input id="manualSerial" autofocus placeholder="Click here and start scanning..."
+                class="flex-1 border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#00c5a0]/20 transition-shadow" />
+              <button id="btnAddSerial" class="btn-primary rounded-xl px-6 py-3 font-semibold">Add</button>
             </div>
-            <div class="mt-3 text-sm text-slate-600">
-              <div>Available marked in-store: <strong id="cntAvailInStore">0</strong></div>
+
+            <div
+              class="flex items-center justify-between text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">
+              <span>Available marked in-store:</span>
+              <strong id="cntAvailInStore" class="text-lg text-[#046b30]">0</strong>
             </div>
-            <div id="unknownBox" class="mt-3 hidden">
-              <div class="text-sm font-semibold">Unknown serials</div>
-              <ul id="unknownList" class="text-sm list-disc pl-4"></ul>
+
+            <div id="unknownBox" class="mt-4 hidden bg-red-50 border border-red-100 rounded-xl p-4 animate-slide-in">
+              <div class="text-sm font-bold text-red-700 mb-2 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                Unknown Serials
+              </div>
+              <ul id="unknownList" class="text-sm list-disc pl-5 text-red-600 space-y-1"></ul>
             </div>
           </div>
         </div>
 
-        <div class="card p-5">
-          <h2 class="text-xl font-semibold mb-3">3) Available — confirm quality & comments</h2>
-          <div class="overflow-x-auto">
-            <table class="min-w-full text-sm" id="tblAvailable">
-              <thead>
-                <tr class="bg-slate-100">
-                  <th class="p-2 text-left">Serial</th>
-                  <th class="p-2 text-left">Item</th>
-                  <th class="p-2 text-left">In Store</th>
-                  <th class="p-2 text-left">Condition</th>
-                  <th class="p-2 text-left">Action</th>
-                  <th class="p-2 text-left">Comments</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+        <!-- Step 3: Available Table -->
+        <div class="card p-6 md:p-8 delay-200">
+          <div class="flex items-center gap-3 mb-6">
+            <div
+              class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">
+              3</div>
+            <h2 class="text-xl font-bold text-slate-800">Available — Confirm Quality & Comments</h2>
           </div>
-          <p id="availNote" class="text-xs text-slate-500 mt-2 hidden">Showing first 400 rows. Export includes all rows.</p>
-        </div>
 
-        <div class="card p-5">
-          <h2 class="text-xl font-semibold mb-3">4) Allocated — contracts & return dates</h2>
-          <div class="overflow-x-auto">
-            <table class="min-w-full text-sm" id="tblAllocated">
-              <thead>
-                <tr class="bg-slate-100">
-                  <th class="p-2 text-left">Serial</th>
-                  <th class="p-2 text-left">Item</th>
-                  <th class="p-2 text-left">Signed contract</th>
-                  <th class="p-2 text-left">Due Date</th>
-                  <th class="p-2 text-left">Status (auto on export)</th>
-                  <th class="p-2 text-left">Overdue Actions (auto on export)</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <p id="allocNote" class="text-xs text-slate-500 mt-2 hidden">Showing first 400 rows. Export includes all rows.</p>
-        </div>
-
-        <div class="card p-5">
-          <div class="flex items-center gap-3">
-            <input id="fileName" placeholder="File name" class="border rounded-xl px-3 py-2 max-w-sm" />
-            <button id="btnExport" class="rounded-2xl px-4 py-2 border bg-black text-white hover:bg-black/90 disabled:opacity-50" disabled>Export Excel (.xlsx)</button>
-          </div>
-          <p class="text-xs text-slate-500 mt-2">Export includes: <em>Paste Loan Report</em>, <em>Scan Available devices here</em>, <em>Available</em>, <em>Allocated</em>, and a <em>Data Validation</em> sheet with dropdowns and lookups.</p>
-          <p id="exportError" class="text-sm text-red-600 mt-2 hidden"></p>
-        </div>
-
-        <div class="card p-5">
-          <h3 class="text-lg font-semibold mb-2">Validation & Actions</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <div class="font-medium mb-2">Allowed Conditions (default = Useable Condition)</div>
-              <ul id="condList" class="list-disc pl-5 text-sm"></ul>
-            </div>
-            <div>
-              <div class="font-medium mb-2">Condition → Action (Available tab)</div>
-              <table class="text-sm min-w-full">
+          <div class="table-container">
+            <div class="overflow-x-auto">
+              <table id="tblAvailable" class="min-w-full text-sm">
                 <thead>
-                  <tr class="bg-slate-100">
-                    <th class="p-2 text-left">Condition</th>
-                    <th class="p-2 text-left">Store action</th>
+                  <tr>
+                    <th>Serial</th>
+                    <th>Item</th>
+                    <th>In Store</th>
+                    <th>Condition</th>
+                    <th>Action</th>
+                    <th>Comments</th>
                   </tr>
                 </thead>
-                <tbody id="condMapBody"></tbody>
+                <tbody></tbody>
               </table>
+            </div>
+          </div>
+          <p id="availNote" class="text-xs text-slate-500 mt-3 hidden italic">Showing first 400 rows. Export includes
+            all rows.</p>
+        </div>
+
+        <!-- Step 4: Allocated Table -->
+        <div class="card p-6 md:p-8 delay-300">
+          <div class="flex items-center gap-3 mb-6">
+            <div
+              class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">
+              4</div>
+            <h2 class="text-xl font-bold text-slate-800">Allocated — Contracts & Return Dates</h2>
+          </div>
+
+          <div class="table-container">
+            <div class="overflow-x-auto">
+              <table id="tblAllocated" class="min-w-full text-sm">
+                <thead>
+                  <tr>
+                    <th>Serial</th>
+                    <th>Item</th>
+                    <th>Signed Contract</th>
+                    <th>Due Date</th>
+                    <th>Status (Auto)</th>
+                    <th>Overdue Actions (Auto)</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <p id="allocNote" class="text-xs text-slate-500 mt-3 hidden italic">Showing first 400 rows. Export includes
+            all rows.</p>
+        </div>
+
+        <!-- Export Section -->
+        <div class="card p-6 md:p-8">
+          <div class="flex flex-col md:flex-row items-center gap-4">
+            <div class="flex-1 w-full">
+              <label class="block text-sm font-medium text-slate-700 mb-1">Export Filename</label>
+              <input id="fileName" placeholder="e.g. Loan Audit Nov 2023" class="w-full px-4 py-2.5" />
+            </div>
+            <button id="btnExport"
+              class="w-full md:w-auto btn-primary rounded-xl px-8 py-2.5 font-bold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Export Excel (.xlsx)
+            </button>
+          </div>
+          <p class="text-xs text-slate-500 mt-3">Includes: <em>Paste Loan Report</em>, <em>Scan Available</em>,
+            <em>Available</em>, <em>Allocated</em>, and <em>Data Validation</em> sheets.</p>
+          <p id="exportError" class="text-sm text-red-600 mt-2 hidden bg-red-50 p-2 rounded border border-red-100"></p>
+        </div>
+
+        <!-- Reference Info -->
+        <div class="card p-6 md:p-8 bg-slate-50/80">
+          <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            Validation Rules & Actions
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <div class="font-semibold text-sm text-slate-700 mb-3 uppercase tracking-wide">Allowed Conditions</div>
+              <ul id="condList" class="list-disc pl-5 text-sm text-slate-600 space-y-1"></ul>
+            </div>
+            <div>
+              <div class="font-semibold text-sm text-slate-700 mb-3 uppercase tracking-wide">Condition → Action Mapping
+              </div>
+              <div class="table-container">
+                <table class="text-sm">
+                  <thead>
+                    <tr>
+                      <th>Condition</th>
+                      <th>Store Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="condMapBody"></tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       <!-- QR Generator Tab -->
-      <section id="tab-qr" class="space-y-5 hidden">
-        <div class="card p-5">
-          <h2 class="text-xl font-semibold mb-3">QR Generator</h2>
-          <div class="space-y-3">
-            <div class="flex gap-2 flex-wrap items-center">
-              <input id="qrLinkInput" type="text" placeholder="Enter or paste a URL" value="https://www.one.nz" inputmode="url"
-                     class="flex-1 min-w-[240px] border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-black/10">
-              <div class="flex gap-2">
-                <button id="qrBtnGenerate" class="rounded-xl px-4 py-2 font-semibold text-white"
-                        style="background:linear-gradient(45deg,#046b30,#00c5a0)">Generate</button>
-                <button id="qrBtnDownload" class="rounded-xl px-4 py-2 font-semibold text-[#0a3] bg-[#eef3f1]">Download</button>
+      <section id="tab-qr" class="hidden animate-fade-in max-w-3xl mx-auto">
+        <div class="card p-8 text-center">
+          <div class="mb-8">
+            <div
+              class="w-16 h-16 bg-gradient-to-br from-[#046b30] to-[#00c5a0] rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="5" height="5" x="3" y="3" rx="1" />
+                <rect width="5" height="5" x="16" y="3" rx="1" />
+                <rect width="5" height="5" x="3" y="16" rx="1" />
+                <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+                <path d="M21 21v.01" />
+                <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+                <path d="M3 12h.01" />
+                <path d="M12 3h.01" />
+                <path d="M12 16v.01" />
+                <path d="M16 12h1" />
+                <path d="M21 12v.01" />
+                <path d="M12 21v-1" />
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-900">QR Code Generator</h2>
+            <p class="text-slate-500 mt-2">Create branded QR codes instantly.</p>
+          </div>
+
+          <div class="space-y-6">
+            <div class="flex flex-col sm:flex-row gap-3 items-stretch">
+              <input id="qrLinkInput" type="text" placeholder="https://www.one.nz" value="https://www.one.nz"
+                inputmode="url" class="flex-1 min-w-[240px] px-4 py-3 text-lg" />
+              <button id="qrBtnGenerate" class="btn-primary rounded-xl px-8 py-3 font-bold text-white shadow-md">
+                Generate
+              </button>
+            </div>
+
+            <div id="qrErr"
+              class="hidden text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm font-medium animate-slide-in">
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-inner inline-block">
+              <div class="rounded-xl overflow-hidden bg-white">
+                <canvas id="qrCanvas"
+                  style="display:block; width:100%; height:auto; max-width: 400px; margin: 0 auto;"></canvas>
               </div>
             </div>
-            <div id="qrErr" class="hidden text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm"></div>
-            <div class="rounded-2xl overflow-hidden bg-white">
-              <canvas id="qrCanvas" style="display:block; width:100%; height:auto;"></canvas>
+
+            <div>
+              <button id="qrBtnDownload"
+                class="btn-secondary rounded-xl px-6 py-2.5 font-semibold text-sm flex items-center gap-2 mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Download PNG
+              </button>
             </div>
-            <div class="text-slate-600 text-sm">Canvas is redrawn when the tab is shown or on Generate.</div>
           </div>
         </div>
       </section>
     </main>
+
+    <footer class="text-center text-slate-400 text-sm py-8">
+      <p>&copy; One NZ Toolkit. Internal Use Only.</p>
+    </footer>
   </div>
 
-<script>
-// --------- Tab Switcher ---------
-(function(){
-  const btnLoan = document.getElementById('tabBtnLoan');
-  const btnQR = document.getElementById('tabBtnQR');
-  const tabLoan = document.getElementById('tab-loan');
-  const tabQR = document.getElementById('tab-qr');
+  <script>
+    // --------- Tab Switcher ---------
+    (function () {
+      const btnLoan = document.getElementById('tabBtnLoan');
+      const btnQR = document.getElementById('tabBtnQR');
+      const tabLoan = document.getElementById('tab-loan');
+      const tabQR = document.getElementById('tab-qr');
 
-  function show(which){
-    const isLoan = which === 'loan';
-    tabLoan.classList.toggle('hidden', !isLoan);
-    tabQR.classList.toggle('hidden', isLoan);
-    btnLoan.setAttribute('aria-selected', String(isLoan));
-    btnQR.setAttribute('aria-selected', String(!isLoan));
-    if (!isLoan) {
-      // Notify QR module that its tab is now visible so it can render at correct size
-      window.dispatchEvent(new CustomEvent('qr-tab-shown'));
-    }
-  }
-  btnLoan.addEventListener('click', ()=>show('loan'));
-  btnQR.addEventListener('click', ()=>show('qr'));
-})();
-</script>
-
-<script>
-// --------- Loan Audit logic (unchanged from v3 aside from placement) ---------
-(function(){
-  const toSerial = (v) => {
-    if (v === null || v === undefined) return "";
-    const s = String(v).trim();
-    return s.replace(/\\D/g, "");
-  };
-
-  const CONDITION_OPTIONS = [
-    "Useable Condition",
-    "Device is damaged/Unusable",
-    "Not fit for purpose: Button phone, Data stick, Vodafone Branded device, iPhone 8 or lower",
-    "Lost/Unable to Locate",
-    "Pending Check"
-  ];
-
-  const CONDITION_TO_ACTION = {
-    "Useable Condition": "Ensure device is reset, charged and ready to be loaned out",
-    "Device is damaged/Unusable": "Follow process on K Hub article https://k-hub.vodafone.nz/pronto-how-to-charge-for-a-loan-phone",
-    "Not fit for purpose: Button phone, Data stick, Vodafone Branded device, iPhone 8 or lower": "Raise request with Sales Ops to remove device from Fleet. Once removed, recycle as per BAU swap kit process",
-    "Lost/Unable to Locate": "Try located device. If unable to find, Blocklist device and request Sales Operations to remove. Once confirmed, recycle as per BAU swap kit process.",
-    "Pending Check": "Run Check"
-  };
-
-  const STATUS_ACTION_ROWS = [
-    { status: "Within Timeframe", action: "No action" },
-    { status: "Overdue: Less than 2 weeks", action: "Follow up with customer to arrange return" },
-    { status: "Overdue: More than 2 weeks", action: "Escalate and arrange immediate return" },
-    { status: "Missing a signed contract instore", action: "Obtain signed contract immediately" }
-  ];
-
-  let rawRows = [];
-  let availableRows = [];
-  let allocatedRows = [];
-  let scanned = new Set();
-
-  // Elements
-  const elFile = document.getElementById("fileInput");
-  const elStats = document.getElementById("loadStats");
-  const elKpis = document.getElementById("kpis");
-  const elKpiAvail = document.getElementById("kpiAvailable");
-  const elKpiAlloc = document.getElementById("kpiAllocated");
-  const elKpiScan = document.getElementById("kpiScanned");
-  const elFileName = document.getElementById("fileName");
-  const elBtnExport = document.getElementById("btnExport");
-  const elTblAvailBody = document.querySelector("#tblAvailable tbody");
-  const elTblAllocBody = document.querySelector("#tblAllocated tbody");
-  const elAvailNote = document.getElementById("availNote");
-  const elAllocNote = document.getElementById("allocNote");
-  const elCntAvailInStore = document.getElementById("cntAvailInStore");
-  const elUnknownBox = document.getElementById("unknownBox");
-  const elUnknownList = document.getElementById("unknownList");
-  const elManual = document.getElementById("manualSerial");
-  const elAddSerial = document.getElementById("btnAddSerial");
-  const elExportError = document.getElementById("exportError");
-
-  // Render condition list + mapping
-  (function(){
-    const condList = document.getElementById("condList");
-    CONDITION_OPTIONS.forEach((c)=>{
-      const li=document.createElement("li"); li.textContent=c; condList.appendChild(li);
-    });
-    const condBody = document.getElementById("condMapBody");
-    CONDITION_OPTIONS.forEach((c)=>{
-      const tr=document.createElement("tr");
-      tr.innerHTML = `<td class="p-2">${c}</td><td class="p-2">${CONDITION_TO_ACTION[c]||""}</td>`;
-      condBody.appendChild(tr);
-    });
-  })();
-
-  // Load report
-  elFile.addEventListener("change", async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    elFileName.value = file.name.replace(/\\.[^.]+$/, "");
-    const ab = await file.arrayBuffer();
-    const wb = XLSX.read(ab, { type: "array" });
-    const sheetName = wb.SheetNames.find(n => /paste/i.test(n)) || wb.SheetNames[0];
-    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: "" });
-
-    rawRows = rows.filter((r)=>{
-      const maybeHdr = String(r["Item"]).toLowerCase()==="item" && String(r["Serial#"]).toLowerCase().includes("serial");
-      const allBlank = Object.values(r).every(v => String(v).trim()==="");
-      return !maybeHdr && !allBlank;
-    }).map((r)=> ({
-      Item: r["Item"] ?? "",
-      Serial: (String(r["Serial#"]||"")).trim(),
-      SerialDigits: toSerial(r["Serial#"]),
-      SerialDescription: r["Serial Description"] ?? r["SerialDescription"] ?? "",
-      Warehouse: r["Warehouse"] ?? "",
-      Name: r["Name"] ?? "",
-      Availability: (r["Availability"] ?? "").toString().trim(),
-      Contract: r["Contract#"] ?? "",
-      Consign: r["Consign#"] ?? "",
-      CS: r["CS"] ?? "",
-      Repair: r["Repair#"] ?? "",
-      RS: r["RS"] ?? "",
-      Condition: r["Condition"] ?? "",
-      Description: r["Description"] ?? "",
-      Created: r["Created"] ?? ""
-    }));
-
-    availableRows = rawRows.filter(r => (r.Availability||"").toLowerCase()==="available")
-                           .map(r => ({...r, InStore: "Not Scanned", ConditionChoice: "Useable Condition", Comments: ""}));
-    allocatedRows = rawRows.filter(r => (r.Availability||"").toLowerCase()!=="available")
-                           .map(r => ({...r, SignedContract: "Yes", DueDate: "", Status: "", OverdueActions: "", ConditionChoice: "Useable Condition"}));
-    scanned.clear();
-    elUnknownList.innerHTML = "";
-    elUnknownBox.classList.add("hidden");
-
-    elKpis.classList.remove("hidden");
-    elKpiAvail.textContent = availableRows.length;
-    elKpiAlloc.textContent = allocatedRows.length;
-    elKpiScan.textContent = scanned.size;
-
-    renderAvailable();
-    renderAllocated();
-    elBtnExport.disabled = false;
-    elStats.textContent = `Loaded ${rawRows.length} rows from “${sheetName}”.`;
-    elManual.focus();
-  });
-
-  function renderAvailable(){
-    elTblAvailBody.innerHTML = "";
-    const max = Math.min(400, availableRows.length);
-    for (let i=0; i<max; i++){
-      const r = availableRows[i];
-      const tr = document.createElement("tr"); tr.className="border-b";
-      const tdS = document.createElement("td"); tdS.className="p-2 mono"; tdS.textContent=r.SerialDigits || r.Serial;
-      const tdI = document.createElement("td"); tdI.className="p-2"; tdI.textContent=r.Item;
-      const tdIS = document.createElement("td"); tdIS.className="p-2";
-      const selIS = document.createElement("select"); selIS.className="border rounded-xl px-2 py-1";
-      ["Not Scanned","Yes"].forEach(v => { const o=document.createElement("option"); o.value=v; o.textContent=v; if (r.InStore===v) o.selected=true; selIS.appendChild(o); });
-      selIS.addEventListener("change", (e)=>{ r.InStore = e.target.value; updateCounts(); });
-      tdIS.appendChild(selIS);
-
-      const tdC = document.createElement("td"); tdC.className="p-2";
-      const selC = document.createElement("select"); selC.className="border rounded-xl px-2 py-1 w-full";
-      CONDITION_OPTIONS.forEach(opt => { const o=document.createElement("option"); o.value=opt; o.textContent=opt; if (r.ConditionChoice===opt) o.selected=true; selC.appendChild(o); });
-      selC.addEventListener("change", (e)=>{ r.ConditionChoice = e.target.value; tdA.textContent = CONDITION_TO_ACTION[e.target.value] || ""; });
-      tdC.appendChild(selC);
-
-      const tdA = document.createElement("td"); tdA.className="p-2"; tdA.textContent = CONDITION_TO_ACTION[r.ConditionChoice] || "";
-      const tdCom = document.createElement("td"); tdCom.className="p-2";
-      const inp = document.createElement("input"); inp.className="border rounded-xl px-2 py-1 w-full"; inp.value=r.Comments||"";
-      inp.addEventListener("input", (e)=> r.Comments = e.target.value);
-      tdCom.appendChild(inp);
-
-      tr.append(tdS, tdI, tdIS, tdC, tdA, tdCom);
-      elTblAvailBody.appendChild(tr);
-    }
-    elAvailNote.classList.toggle("hidden", availableRows.length<=400);
-    updateCounts();
-  }
-
-  function renderAllocated(){
-    elTblAllocBody.innerHTML = "";
-    const max = Math.min(400, allocatedRows.length);
-    for (let i=0; i<max; i++){
-      const r = allocatedRows[i];
-      const tr = document.createElement("tr"); tr.className="border-b";
-      const tdS = document.createElement("td"); tdS.className="p-2 mono"; tdS.textContent=r.SerialDigits || r.Serial;
-      const tdI = document.createElement("td"); tdI.className="p-2"; tdI.textContent=r.Item;
-      const tdSC = document.createElement("td"); tdSC.className="p-2";
-      const sel = document.createElement("select"); sel.className="border rounded-xl px-2 py-1";
-      ["Yes","No"].forEach(v => { const o=document.createElement("option"); o.value=v; o.textContent=v; if (r.SignedContract===v) o.selected=true; sel.appendChild(o);});
-      sel.addEventListener("change", (e)=> r.SignedContract = e.target.value);
-      const tdDue = document.createElement("td"); tdDue.className="p-2";
-      const inp = document.createElement("input"); inp.type="date"; inp.className="border rounded-xl px-2 py-1"; inp.value=r.DueDate||"";
-      inp.addEventListener("input", (e)=> r.DueDate = e.target.value);
-      tdSC.appendChild(sel); tdDue.appendChild(inp);
-      const tdStatus = document.createElement("td"); tdStatus.className="p-2 text-slate-500"; tdStatus.textContent="(Excel formula)";
-      const tdAct = document.createElement("td"); tdAct.className="p-2 text-slate-500"; tdAct.textContent="(Excel XLOOKUP)";
-      tr.append(tdS, tdI, tdSC, tdDue, tdStatus, tdAct);
-      elTblAllocBody.appendChild(tr);
-    }
-    elAllocNote.classList.toggle("hidden", allocatedRows.length<=400);
-  }
-
-  function updateCounts(){
-    const availInStore = availableRows.filter(r => r.InStore === "Yes").length;
-    elCntAvailInStore.textContent = String(availInStore);
-    elKpiScan.textContent = String(scanned.size);
-  }
-
-  function addScan(value){
-    const s = toSerial(value);
-    if (!s) return;
-    scanned.add(s);
-    const r = availableRows.find(x => (x.SerialDigits||x.Serial) === s);
-    if (r){ r.InStore = "Yes"; updateCounts(); renderAvailable(); }
-    else {
-      const li=document.createElement("li"); li.textContent = s; elUnknownList.appendChild(li);
-      elUnknownBox.classList.remove("hidden");
-    }
-  }
-
-  elManual.addEventListener("keydown", (e)=>{
-    if (e.key === "Enter" || e.key === "Tab"){
-      e.preventDefault();
-      addScan(e.target.value);
-      e.target.value = "";
-      e.target.focus();
-    }
-  });
-  elAddSerial.addEventListener("click", ()=>{
-    addScan(elManual.value);
-    elManual.value = "";
-    elManual.focus();
-  });
-
-  document.getElementById("btnExport").addEventListener("click", async () => {
-    elExportError.classList.add("hidden");
-    elExportError.textContent = "";
-    try {
-      if (!rawRows.length){
-        alert("Please upload your Pronto report first."); return;
+      function show(which) {
+        const isLoan = which === 'loan';
+        tabLoan.classList.toggle('hidden', !isLoan);
+        tabQR.classList.toggle('hidden', isLoan);
+        btnLoan.setAttribute('aria-selected', String(isLoan));
+        btnQR.setAttribute('aria-selected', String(!isLoan));
+        if (!isLoan) {
+          window.dispatchEvent(new CustomEvent('qr-tab-shown'));
+        }
       }
-      const wb = new ExcelJS.Workbook();
+      btnLoan.addEventListener('click', () => show('loan'));
+      btnQR.addEventListener('click', () => show('qr'));
+    })();
+  </script>
 
-      const dv = wb.addWorksheet("Data Validation");
-      dv.addRow(["status", "Device condition", "Store actions"]);
-      const statusBlock = [
-        ["Within Timeframe", "", "No action"],
-        ["Overdue: Less than 2 weeks", "", "Follow up with customer to arrange return"],
-        ["Overdue: More than 2 weeks", "", "Escalate and arrange immediate return"],
-        ["Missing a signed contract instore", "", "Obtain signed contract immediately"]
+  <script>
+    // --------- Loan Audit logic ---------
+    (function () {
+      const toSerial = (v) => {
+        if (v === null || v === undefined) return "";
+        const s = String(v).trim();
+        return s.replace(/\\D/g, "");
+      };
+
+      const CONDITION_OPTIONS = [
+        "Useable Condition",
+        "Device is damaged/Unusable",
+        "Not fit for purpose: Button phone, Data stick, Vodafone Branded device, iPhone 8 or lower",
+        "Lost/Unable to Locate",
+        "Pending Check"
       ];
-      statusBlock.forEach(r => dv.addRow(r));
-      const condToAction = {
+
+      const CONDITION_TO_ACTION = {
         "Useable Condition": "Ensure device is reset, charged and ready to be loaned out",
         "Device is damaged/Unusable": "Follow process on K Hub article https://k-hub.vodafone.nz/pronto-how-to-charge-for-a-loan-phone",
         "Not fit for purpose: Button phone, Data stick, Vodafone Branded device, iPhone 8 or lower": "Raise request with Sales Ops to remove device from Fleet. Once removed, recycle as per BAU swap kit process",
         "Lost/Unable to Locate": "Try located device. If unable to find, Blocklist device and request Sales Operations to remove. Once confirmed, recycle as per BAU swap kit process.",
         "Pending Check": "Run Check"
       };
-      CONDITION_OPTIONS.forEach(c => dv.addRow(["", c, (condToAction[c]||"")]));
 
-      dv.getCell("E1").value = "Device condition list";
-      CONDITION_OPTIONS.forEach((c,i)=> dv.getCell(`E${i+2}`).value = c);
-      const condListRef = `'Data Validation'!$E$2:$E$${CONDITION_OPTIONS.length+1}`;
+      let rawRows = [];
+      let availableRows = [];
+      let allocatedRows = [];
+      let scanned = new Set();
 
-      const raw = wb.addWorksheet("Paste Loan Report");
-      raw.addRow(["Item","Serial#","Serial Description","Warehouse","Name","Availability","Contract#","Consign#","CS","Repair#","RS","Condition","Description","Created"]);
-      rawRows.forEach(r => raw.addRow([r.Item, r.SerialDigits || r.Serial, r.SerialDescription, r.Warehouse, r.Name, r.Availability, r.Contract, r.Consign, r.CS, r.Repair, r.RS, r.Condition, r.Description, r.Created]));
+      // Elements
+      const elFile = document.getElementById("fileInput");
+      const elStats = document.getElementById("loadStats");
+      const elKpis = document.getElementById("kpis");
+      const elKpiAvail = document.getElementById("kpiAvailable");
+      const elKpiAlloc = document.getElementById("kpiAllocated");
+      const elKpiScan = document.getElementById("kpiScanned");
+      const elFileName = document.getElementById("fileName");
+      const elBtnExport = document.getElementById("btnExport");
+      const elTblAvailBody = document.querySelector("#tblAvailable tbody");
+      const elTblAllocBody = document.querySelector("#tblAllocated tbody");
+      const elAvailNote = document.getElementById("availNote");
+      const elAllocNote = document.getElementById("allocNote");
+      const elCntAvailInStore = document.getElementById("cntAvailInStore");
+      const elUnknownBox = document.getElementById("unknownBox");
+      const elUnknownList = document.getElementById("unknownList");
+      const elManual = document.getElementById("manualSerial");
+      const elAddSerial = document.getElementById("btnAddSerial");
+      const elExportError = document.getElementById("exportError");
 
-      const scan = wb.addWorksheet("Scan Available devices here");
-      scan.addRow(["Scan Devices here", "Device Status"]);
-      Array.from(scanned).forEach(s => {
-        const status = availableRows.some(r => (r.SerialDigits||r.Serial)===s) ? "Available" : (allocatedRows.some(r => (r.SerialDigits||r.Serial)===s) ? "Allocated" : "Unknown");
-        scan.addRow([s, status]);
+      // Render condition list + mapping
+      (function () {
+        const condList = document.getElementById("condList");
+        CONDITION_OPTIONS.forEach((c) => {
+          const li = document.createElement("li"); li.textContent = c; condList.appendChild(li);
+        });
+        const condBody = document.getElementById("condMapBody");
+        CONDITION_OPTIONS.forEach((c) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td class="p-2 font-medium">${c}</td><td class="p-2 text-slate-600">${CONDITION_TO_ACTION[c] || ""}</td>`;
+          condBody.appendChild(tr);
+        });
+      })();
+
+      // Load report
+      elFile.addEventListener("change", async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        elFileName.value = file.name.replace(/\\.[^.]+$/, "");
+        const ab = await file.arrayBuffer();
+        const wb = XLSX.read(ab, { type: "array" });
+        const sheetName = wb.SheetNames.find(n => /paste/i.test(n)) || wb.SheetNames[0];
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: "" });
+
+        rawRows = rows.filter((r) => {
+          const maybeHdr = String(r["Item"]).toLowerCase() === "item" && String(r["Serial#"]).toLowerCase().includes("serial");
+          const allBlank = Object.values(r).every(v => String(v).trim() === "");
+          return !maybeHdr && !allBlank;
+        }).map((r) => ({
+          Item: r["Item"] ?? "",
+          Serial: (String(r["Serial#"] || "")).trim(),
+          SerialDigits: toSerial(r["Serial#"]),
+          SerialDescription: r["Serial Description"] ?? r["SerialDescription"] ?? "",
+          Warehouse: r["Warehouse"] ?? "",
+          Name: r["Name"] ?? "",
+          Availability: (r["Availability"] ?? "").toString().trim(),
+          Contract: r["Contract#"] ?? "",
+          Consign: r["Consign#"] ?? "",
+          CS: r["CS"] ?? "",
+          Repair: r["Repair#"] ?? "",
+          RS: r["RS"] ?? "",
+          Condition: r["Condition"] ?? "",
+          Description: r["Description"] ?? "",
+          Created: r["Created"] ?? ""
+        }));
+
+        availableRows = rawRows.filter(r => (r.Availability || "").toLowerCase() === "available")
+          .map(r => ({ ...r, InStore: "Not Scanned", ConditionChoice: "Useable Condition", Comments: "" }));
+        allocatedRows = rawRows.filter(r => (r.Availability || "").toLowerCase() !== "available")
+          .map(r => ({ ...r, SignedContract: "Yes", DueDate: "", Status: "", OverdueActions: "", ConditionChoice: "Useable Condition" }));
+        scanned.clear();
+        elUnknownList.innerHTML = "";
+        elUnknownBox.classList.add("hidden");
+
+        elKpis.classList.remove("hidden");
+        elKpiAvail.textContent = availableRows.length;
+        elKpiAlloc.textContent = allocatedRows.length;
+        elKpiScan.textContent = scanned.size;
+
+        renderAvailable();
+        renderAllocated();
+        elBtnExport.disabled = false;
+        elStats.textContent = `Loaded ${rawRows.length} rows from “${sheetName}”.`;
+        elManual.focus();
       });
 
-      const wsA = wb.addWorksheet("Available");
-      wsA.addRow(["Item","Serial#","Serial Description","Warehouse","Name","Availability","Contract#","Consign#","Condition","Description","Created","In Store","Condition","Action based on condition","Comments"]);
-      availableRows.forEach(r => wsA.addRow([r.Item, String(r.SerialDigits || r.Serial), r.SerialDescription, r.Warehouse, r.Name, "Available", r.Contract, r.Consign, r.Condition, r.Description, r.Created, r.InStore, r.ConditionChoice || "Useable Condition", "", r.Comments || ""]));
-      const lastRowA = wsA.rowCount;
-      if (lastRowA > 1){
-        wsA.dataValidations.add(`N2:N${lastRowA}`, { type:"list", allowBlank:true, formulae:[condListRef], showErrorMessage:true, errorStyle:"stop", errorTitle:"Invalid choice", error:"Pick a value from the dropdown." });
-        for (let r=2; r<=lastRowA; r++){
-          wsA.getCell(`O${r}`).value = { formula: `IFERROR(XLOOKUP(N${r},'Data Validation'!$B:$B,'Data Validation'!$C:$C,""),"")` };
-          wsA.getCell(`O${r}`).alignment = { wrapText: true };
+      function renderAvailable() {
+        elTblAvailBody.innerHTML = "";
+        const max = Math.min(400, availableRows.length);
+        for (let i = 0; i < max; i++) {
+          const r = availableRows[i];
+          const tr = document.createElement("tr"); tr.className = "border-b hover:bg-slate-50";
+          const tdS = document.createElement("td"); tdS.className = "p-3 mono font-medium"; tdS.textContent = r.SerialDigits || r.Serial;
+          const tdI = document.createElement("td"); tdI.className = "p-3"; tdI.textContent = r.Item;
+          const tdIS = document.createElement("td"); tdIS.className = "p-3";
+          const selIS = document.createElement("select"); selIS.className = "border rounded-lg px-2 py-1.5 text-sm bg-white focus:ring-2 focus:ring-[#00c5a0]/20";
+          ["Not Scanned", "Yes"].forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; if (r.InStore === v) o.selected = true; selIS.appendChild(o); });
+          selIS.addEventListener("change", (e) => { r.InStore = e.target.value; updateCounts(); });
+          tdIS.appendChild(selIS);
+
+          const tdC = document.createElement("td"); tdC.className = "p-3";
+          const selC = document.createElement("select"); selC.className = "border rounded-lg px-2 py-1.5 text-sm bg-white w-full min-w-[180px] focus:ring-2 focus:ring-[#00c5a0]/20";
+          CONDITION_OPTIONS.forEach(opt => { const o = document.createElement("option"); o.value = opt; o.textContent = opt; if (r.ConditionChoice === opt) o.selected = true; selC.appendChild(o); });
+          selC.addEventListener("change", (e) => { r.ConditionChoice = e.target.value; tdA.textContent = CONDITION_TO_ACTION[e.target.value] || ""; });
+          tdC.appendChild(selC);
+
+          const tdA = document.createElement("td"); tdA.className = "p-3 text-slate-600 text-xs"; tdA.textContent = CONDITION_TO_ACTION[r.ConditionChoice] || "";
+          const tdCom = document.createElement("td"); tdCom.className = "p-3";
+          const inp = document.createElement("input"); inp.className = "border rounded-lg px-2 py-1.5 text-sm w-full focus:ring-2 focus:ring-[#00c5a0]/20"; inp.value = r.Comments || "";
+          inp.addEventListener("input", (e) => r.Comments = e.target.value);
+          tdCom.appendChild(inp);
+
+          tr.append(tdS, tdI, tdIS, tdC, tdA, tdCom);
+          elTblAvailBody.appendChild(tr);
+        }
+        elAvailNote.classList.toggle("hidden", availableRows.length <= 400);
+        updateCounts();
+      }
+
+      function renderAllocated() {
+        elTblAllocBody.innerHTML = "";
+        const max = Math.min(400, allocatedRows.length);
+        for (let i = 0; i < max; i++) {
+          const r = allocatedRows[i];
+          const tr = document.createElement("tr"); tr.className = "border-b hover:bg-slate-50";
+          const tdS = document.createElement("td"); tdS.className = "p-3 mono font-medium"; tdS.textContent = r.SerialDigits || r.Serial;
+          const tdI = document.createElement("td"); tdI.className = "p-3"; tdI.textContent = r.Item;
+          const tdSC = document.createElement("td"); tdSC.className = "p-3";
+          const sel = document.createElement("select"); sel.className = "border rounded-lg px-2 py-1.5 text-sm bg-white focus:ring-2 focus:ring-[#00c5a0]/20";
+          ["Yes", "No"].forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; if (r.SignedContract === v) o.selected = true; sel.appendChild(o); });
+          sel.addEventListener("change", (e) => r.SignedContract = e.target.value);
+          const tdDue = document.createElement("td"); tdDue.className = "p-3";
+          const inp = document.createElement("input"); inp.type = "date"; inp.className = "border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-[#00c5a0]/20"; inp.value = r.DueDate || "";
+          inp.addEventListener("input", (e) => r.DueDate = e.target.value);
+          tdSC.appendChild(sel); tdDue.appendChild(inp);
+          const tdStatus = document.createElement("td"); tdStatus.className = "p-3 text-slate-400 italic text-xs"; tdStatus.textContent = "(Excel formula)";
+          const tdAct = document.createElement("td"); tdAct.className = "p-3 text-slate-400 italic text-xs"; tdAct.textContent = "(Excel XLOOKUP)";
+          tr.append(tdS, tdI, tdSC, tdDue, tdStatus, tdAct);
+          elTblAllocBody.appendChild(tr);
+        }
+        elAllocNote.classList.toggle("hidden", allocatedRows.length <= 400);
+      }
+
+      function updateCounts() {
+        const availInStore = availableRows.filter(r => r.InStore === "Yes").length;
+        elCntAvailInStore.textContent = String(availInStore);
+        elKpiScan.textContent = String(scanned.size);
+      }
+
+      function addScan(value) {
+        const s = toSerial(value);
+        if (!s) return;
+        scanned.add(s);
+        const r = availableRows.find(x => (x.SerialDigits || x.Serial) === s);
+        if (r) { r.InStore = "Yes"; updateCounts(); renderAvailable(); }
+        else {
+          const li = document.createElement("li"); li.textContent = s; elUnknownList.appendChild(li);
+          elUnknownBox.classList.remove("hidden");
         }
       }
 
-      const wsL = wb.addWorksheet("Allocated");
-      wsL.addRow(["Item","Serial#","Serial Description","Warehouse","Name","Availability","Contract#","Consign#","Condition","Description","Created","Signed contract","Contract Actions","Due Date","Days overdue","Status","Overdue Actions"]);
-      allocatedRows.forEach(r => wsL.addRow([r.Item, String(r.SerialDigits || r.Serial), r.SerialDescription, r.Warehouse, r.Name, r.Availability, r.Contract, r.Consign, r.Condition, r.Description, r.Created, r.SignedContract, "", r.DueDate || "", "", "", ""]));
-      const lastRowL = wsL.rowCount;
-      if (lastRowL > 1){
-        for (let r=2; r<=lastRowL; r++){
-          wsL.getCell(`O${r}`).value = { formula: `IF(N${r}="","",MAX(0,TODAY()-N${r}))` };
-          wsL.getCell(`P${r}`).value = { formula: `IF(L${r}="No","Missing a signed contract instore",IF(N${r}="","",IF(TODAY()-N${r}>14,"Overdue: More than 2 weeks",IF(TODAY()-N${r}>0,"Overdue: Less than 2 weeks","Within Timeframe"))))` };
-          wsL.getCell(`Q${r}`).value = { formula: `IFERROR(XLOOKUP(P${r},'Data Validation'!$A:$A,'Data Validation'!$C:$C,""),"")` };
-          wsL.getCell(`Q${r}`).alignment = { wrapText: true };
+      elManual.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === "Tab") {
+          e.preventDefault();
+          addScan(e.target.value);
+          e.target.value = "";
+          e.target.focus();
         }
+      });
+      elAddSerial.addEventListener("click", () => {
+        addScan(elManual.value);
+        elManual.value = "";
+        elManual.focus();
+      });
+
+      document.getElementById("btnExport").addEventListener("click", async () => {
+        elExportError.classList.add("hidden");
+        elExportError.textContent = "";
+        try {
+          if (!rawRows.length) {
+            alert("Please upload your Pronto report first."); return;
+          }
+          const wb = new ExcelJS.Workbook();
+
+          const dv = wb.addWorksheet("Data Validation");
+          dv.addRow(["status", "Device condition", "Store actions"]);
+          const statusBlock = [
+            ["Within Timeframe", "", "No action"],
+            ["Overdue: Less than 2 weeks", "", "Follow up with customer to arrange return"],
+            ["Overdue: More than 2 weeks", "", "Escalate and arrange immediate return"],
+            ["Missing a signed contract instore", "", "Obtain signed contract immediately"]
+          ];
+          statusBlock.forEach(r => dv.addRow(r));
+          const condToAction = {
+            "Useable Condition": "Ensure device is reset, charged and ready to be loaned out",
+            "Device is damaged/Unusable": "Follow process on K Hub article https://k-hub.vodafone.nz/pronto-how-to-charge-for-a-loan-phone",
+            "Not fit for purpose: Button phone, Data stick, Vodafone Branded device, iPhone 8 or lower": "Raise request with Sales Ops to remove device from Fleet. Once removed, recycle as per BAU swap kit process",
+            "Lost/Unable to Locate": "Try located device. If unable to find, Blocklist device and request Sales Operations to remove. Once confirmed, recycle as per BAU swap kit process.",
+            "Pending Check": "Run Check"
+          };
+          CONDITION_OPTIONS.forEach(c => dv.addRow(["", c, (condToAction[c] || "")]));
+
+          dv.getCell("E1").value = "Device condition list";
+          CONDITION_OPTIONS.forEach((c, i) => dv.getCell(`E${i + 2}`).value = c);
+          const condListRef = `'Data Validation'!$E$2:$E$${CONDITION_OPTIONS.length + 1}`;
+
+          const raw = wb.addWorksheet("Paste Loan Report");
+          raw.addRow(["Item", "Serial#", "Serial Description", "Warehouse", "Name", "Availability", "Contract#", "Consign#", "CS", "Repair#", "RS", "Condition", "Description", "Created"]);
+          rawRows.forEach(r => raw.addRow([r.Item, r.SerialDigits || r.Serial, r.SerialDescription, r.Warehouse, r.Name, r.Availability, r.Contract, r.Consign, r.CS, r.Repair, r.RS, r.Condition, r.Description, r.Created]));
+
+          const scan = wb.addWorksheet("Scan Available devices here");
+          scan.addRow(["Scan Devices here", "Device Status"]);
+          Array.from(scanned).forEach(s => {
+            const status = availableRows.some(r => (r.SerialDigits || r.Serial) === s) ? "Available" : (allocatedRows.some(r => (r.SerialDigits || r.Serial) === s) ? "Allocated" : "Unknown");
+            scan.addRow([s, status]);
+          });
+
+          const wsA = wb.addWorksheet("Available");
+          wsA.addRow(["Item", "Serial#", "Serial Description", "Warehouse", "Name", "Availability", "Contract#", "Consign#", "Condition", "Description", "Created", "In Store", "Condition", "Action based on condition", "Comments"]);
+          availableRows.forEach(r => wsA.addRow([r.Item, String(r.SerialDigits || r.Serial), r.SerialDescription, r.Warehouse, r.Name, "Available", r.Contract, r.Consign, r.Condition, r.Description, r.Created, r.InStore, r.ConditionChoice || "Useable Condition", "", r.Comments || ""]));
+          const lastRowA = wsA.rowCount;
+          if (lastRowA > 1) {
+            wsA.dataValidations.add(`N2:N${lastRowA}`, { type: "list", allowBlank: true, formulae: [condListRef], showErrorMessage: true, errorStyle: "stop", errorTitle: "Invalid choice", error: "Pick a value from the dropdown." });
+            for (let r = 2; r <= lastRowA; r++) {
+              wsA.getCell(`O${r}`).value = { formula: `IFERROR(XLOOKUP(N${r},'Data Validation'!$B:$B,'Data Validation'!$C:$C,""),"")` };
+              wsA.getCell(`O${r}`).alignment = { wrapText: true };
+            }
+          }
+
+          const wsL = wb.addWorksheet("Allocated");
+          wsL.addRow(["Item", "Serial#", "Serial Description", "Warehouse", "Name", "Availability", "Contract#", "Consign#", "Condition", "Description", "Created", "Signed contract", "Contract Actions", "Due Date", "Days overdue", "Status", "Overdue Actions"]);
+          allocatedRows.forEach(r => wsL.addRow([r.Item, String(r.SerialDigits || r.Serial), r.SerialDescription, r.Warehouse, r.Name, r.Availability, r.Contract, r.Consign, r.Condition, r.Description, r.Created, r.SignedContract, "", r.DueDate || "", "", "", ""]));
+          const lastRowL = wsL.rowCount;
+          if (lastRowL > 1) {
+            for (let r = 2; r <= lastRowL; r++) {
+              wsL.getCell(`O${r}`).value = { formula: `IF(N${r}="","",MAX(0,TODAY()-N${r}))` };
+              wsL.getCell(`P${r}`).value = { formula: `IF(L${r}="No","Missing a signed contract instore",IF(N${r}="","",IF(TODAY()-N${r}>14,"Overdue: More than 2 weeks",IF(TODAY()-N${r}>0,"Overdue: Less than 2 weeks","Within Timeframe"))))` };
+              wsL.getCell(`Q${r}`).value = { formula: `IFERROR(XLOOKUP(P${r},'Data Validation'!$A:$A,'Data Validation'!$C:$C,""),"")` };
+              wsL.getCell(`Q${r}`).alignment = { wrapText: true };
+            }
+          }
+
+          const fileBase = (elFileName.value || "Loan Audit");
+          const buffer = await wb.xlsx.writeBuffer();
+          const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a"); a.href = url; a.download = `${fileBase}.xlsx`; document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } catch (err) {
+          console.error(err);
+          elExportError.textContent = "Export failed. If this persists, try Chrome/Edge desktop and ensure file is opened from disk.";
+          elExportError.classList.remove("hidden");
+        }
+      });
+    })();
+  </script>
+
+  <script>
+    // --------- QR Generator ---------
+    (function () {
+      const canvas = document.getElementById('qrCanvas');
+      const ctx = canvas.getContext('2d');
+      const input = document.getElementById('qrLinkInput');
+      const errBox = document.getElementById('qrErr');
+
+      let lastUrl = '';
+
+      function cssPixelsToBacking(px) { return Math.max(1, Math.round(px * (window.devicePixelRatio || 1))); }
+      function targetDisplaySize() {
+        const shell = canvas.parentElement.getBoundingClientRect();
+        const width = Math.round(shell.width || 0);
+        return width > 0 ? Math.min(640, Math.max(240, width - 2)) : 360;
       }
 
-      const fileBase = (elFileName.value || "Loan Audit");
-      const buffer = await wb.xlsx.writeBuffer();
-      const blob = new Blob([buffer], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = `${fileBase}.xlsx`; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url), 1000);
-    } catch (err){
-      console.error(err);
-      elExportError.textContent = "Export failed. If this persists, try Chrome/Edge desktop and ensure file is opened from disk.";
-      elExportError.classList.remove("hidden");
-    }
-  });
-})();
-</script>
+      async function render(url) {
+        errBox.classList.add('hidden');
+        if (!url) return;
+        if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
 
-<script>
-// --------- QR Generator with tab-aware rendering ---------
-(function(){
-  const canvas = document.getElementById('qrCanvas');
-  const ctx = canvas.getContext('2d');
-  const input = document.getElementById('qrLinkInput');
-  const errBox = document.getElementById('qrErr');
+        if (!window.QRCode || typeof QRCode.toDataURL !== 'function') {
+          errBox.classList.remove('hidden');
+          errBox.textContent = 'QR library failed to load.';
+          return;
+        }
 
-  let lastUrl = '';
+        const display = targetDisplaySize();
+        const quiet = Math.round(display * 0.08);
+        const qrSize = display - quiet * 2;
 
-  function cssPixelsToBacking(px){ return Math.max(1, Math.round(px * (window.devicePixelRatio || 1))); }
-  function targetDisplaySize(){
-    const shell = canvas.parentElement.getBoundingClientRect();
-    const width = Math.round(shell.width || 0);
-    // When hidden, width can be 0. Use a sensible fallback.
-    return width > 0 ? Math.min(640, Math.max(240, width - 2)) : 360;
-  }
+        const w = cssPixelsToBacking(display);
+        const h = cssPixelsToBacking(display);
+        canvas.width = w; canvas.height = h;
+        canvas.style.width = display + 'px';
+        canvas.style.height = 'auto';
 
-  async function render(url){
-    errBox.classList.add('hidden');
-    if (!url) return;
-    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;  // fixed regex
+        const grad = ctx.createLinearGradient(0, 0, w, h);
+        grad.addColorStop(0, '#046b30');
+        grad.addColorStop(1, '#00c5a0');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
 
-    if (!window.QRCode || typeof QRCode.toDataURL !== 'function'){
-      errBox.classList.remove('hidden');
-      errBox.textContent = 'QR library failed to load.';
-      return;
-    }
+        const q = cssPixelsToBacking(quiet);
+        const s = cssPixelsToBacking(qrSize);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(q, q, s, s);
 
-    const display = targetDisplaySize();
-    const quiet = Math.round(display * 0.08);
-    const qrSize = display - quiet*2;
+        const qrPx = Math.max(180, Math.min(1200, s));
+        const dataUrl = await QRCode.toDataURL(url, {
+          errorCorrectionLevel: 'H',
+          margin: 1,
+          width: qrPx,
+          color: { dark: '#000000', light: '#FFFFFF' }
+        });
 
-    const w = cssPixelsToBacking(display);
-    const h = cssPixelsToBacking(display);
-    canvas.width = w; canvas.height = h;
-    canvas.style.width = display + 'px';
-    canvas.style.height = 'auto';
+        const img = new Image();
+        img.src = dataUrl;
+        await img.decode();
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, q, q, s, s);
+      }
 
-    const grad = ctx.createLinearGradient(0, 0, w, h);
-    grad.addColorStop(0, '#046b30');
-    grad.addColorStop(1, '#00c5a0');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, w, h);
+      document.getElementById('qrBtnGenerate').addEventListener('click', async () => {
+        lastUrl = (input.value || '').trim();
+        await render(lastUrl);
+      });
 
-    const q = cssPixelsToBacking(quiet);
-    const s = cssPixelsToBacking(qrSize);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(q, q, s, s);
+      document.getElementById('qrBtnDownload').addEventListener('click', () => {
+        if (!canvas.width) return;
+        const a = document.createElement('a');
+        a.download = 'qr-code.png';
+        a.href = canvas.toDataURL('image/png');
+        a.click();
+      });
 
-    const qrPx = Math.max(180, Math.min(1200, s));
-    const dataUrl = await QRCode.toDataURL(url, {
-      errorCorrectionLevel:'H',
-      margin: 1,
-      width: qrPx,
-      color:{ dark:'#000000', light:'#FFFFFF' }
-    });
+      window.addEventListener('qr-tab-shown', () => {
+        lastUrl = (input.value || '').trim() || lastUrl;
+        if (lastUrl) render(lastUrl);
+      });
 
-    const img = new Image();
-    img.src = dataUrl;
-    await img.decode();
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(img, q, q, s, s);
-  }
-
-  // Generate click
-  document.getElementById('qrBtnGenerate').addEventListener('click', async () => {
-    lastUrl = (input.value || '').trim();
-    await render(lastUrl);
-  });
-
-  // Download
-  document.getElementById('qrBtnDownload').addEventListener('click', () => {
-    if (!canvas.width) return;
-    const a = document.createElement('a');
-    a.download = 'qr-code.png';
-    a.href = canvas.toDataURL('image/png');
-    a.click();
-  });
-
-  // Re-render when tab becomes visible
-  window.addEventListener('qr-tab-shown', () => {
-    lastUrl = (input.value || '').trim() || lastUrl;
-    if (lastUrl) render(lastUrl);
-  });
-
-  // Also rerender on resize if already visible
-  let resizeTimer;
-  window.addEventListener('resize', () => {
-    if (!lastUrl) return;
-    // Only re-render if the QR tab is visible
-    const visible = !document.getElementById('tab-qr').classList.contains('hidden');
-    if (!visible) return;
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => render(lastUrl), 150);
-  }, { passive:true });
-})();
-</script>
+      let resizeTimer;
+      window.addEventListener('resize', () => {
+        if (!lastUrl) return;
+        const visible = !document.getElementById('tab-qr').classList.contains('hidden');
+        if (!visible) return;
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => render(lastUrl), 150);
+      }, { passive: true });
+    })();
+  </script>
 </body>
+
 </html>
