@@ -21,7 +21,7 @@
 
 <body class="p-4 md:p-8 lg:p-12">
 
-  <div class="max-w-7xl mx-auto space-y-8">
+  <div id="mainContainer" class="max-w-7xl mx-auto space-y-8 transition-all duration-500 ease-in-out">
 
     <!-- Header -->
     <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 animate-fade-in">
@@ -43,8 +43,14 @@
 
       <div class="flex items-center gap-3">
         <nav
-          class="flex p-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
-          <button id="tabBtnLoan" class="tab-btn flex items-center gap-2 rounded-xl px-6 py-2.5 font-semibold text-sm"
+          class="relative flex p-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
+          <!-- Glider Background -->
+          <div id="tabGlider"
+            class="absolute top-1 left-1 h-[calc(100%-8px)] rounded-xl bg-gradient-to-br from-[#046b30] to-[#00c5a0] shadow-lg transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] pointer-events-none z-0">
+          </div>
+
+          <button id="tabBtnLoan"
+            class="tab-btn relative z-10 flex items-center gap-2 rounded-xl px-6 py-2.5 font-semibold text-sm transition-colors duration-300"
             aria-selected="true">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -56,7 +62,8 @@
             </svg>
             Loan Audit
           </button>
-          <button id="tabBtnQR" class="tab-btn flex items-center gap-2 rounded-xl px-6 py-2.5 font-semibold text-sm"
+          <button id="tabBtnQR"
+            class="tab-btn relative z-10 flex items-center gap-2 rounded-xl px-6 py-2.5 font-semibold text-sm transition-colors duration-300"
             aria-selected="false">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -75,7 +82,8 @@
             </svg>
             QR Generator
           </button>
-          <button id="tabBtnJesse" class="tab-btn flex items-center gap-2 rounded-xl px-6 py-2.5 font-semibold text-sm"
+          <button id="tabBtnJesse"
+            class="tab-btn relative z-10 flex items-center gap-2 rounded-xl px-6 py-2.5 font-semibold text-sm transition-colors duration-300"
             aria-selected="false">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -475,46 +483,73 @@
       const tabLoan = document.getElementById('tab-loan');
       const tabQR = document.getElementById('tab-qr');
       const tabJesse = document.getElementById('tab-jesse');
+      const glider = document.getElementById('tabGlider');
 
       function show(which) {
+        // Hide all sections
         tabLoan.classList.add('hidden');
         tabQR.classList.add('hidden');
         tabJesse.classList.add('hidden');
 
+        // Reset Aria
         btnLoan.setAttribute('aria-selected', 'false');
         btnQR.setAttribute('aria-selected', 'false');
         btnJesse.setAttribute('aria-selected', 'false');
 
-        // Reset button styles for all tabs
+        // Reset text colors
         [btnLoan, btnQR, btnJesse].forEach(btn => {
-          btn.classList.remove('text-white', 'dark:text-white');
+          btn.classList.remove('text-white');
           btn.classList.add('text-slate-600', 'dark:text-slate-300', 'hover:text-slate-900', 'dark:hover:text-white');
         });
 
+        let activeBtn;
+
         if (which === 'loan') {
           tabLoan.classList.remove('hidden');
-          btnLoan.setAttribute('aria-selected', 'true');
-          btnLoan.classList.add('text-white', 'dark:text-white');
-          btnLoan.classList.remove('text-slate-600', 'dark:text-slate-300', 'hover:text-slate-900', 'dark:hover:text-white');
+          activeBtn = btnLoan;
+          document.getElementById('mainContainer').classList.add('max-w-7xl');
+          document.getElementById('mainContainer').classList.remove('max-w-[95%]');
         } else if (which === 'qr') {
           tabQR.classList.remove('hidden');
-          btnQR.setAttribute('aria-selected', 'true');
-          btnQR.classList.add('text-white', 'dark:text-white');
-          btnQR.classList.remove('text-slate-600', 'dark:text-slate-300', 'hover:text-slate-900', 'dark:hover:text-white');
+          activeBtn = btnQR;
           window.dispatchEvent(new CustomEvent('qr-tab-shown'));
+          document.getElementById('mainContainer').classList.add('max-w-7xl');
+          document.getElementById('mainContainer').classList.remove('max-w-[95%]');
         } else if (which === 'jesse') {
           tabJesse.classList.remove('hidden');
-          btnJesse.setAttribute('aria-selected', 'true');
-          btnJesse.classList.add('text-white', 'dark:text-white');
-          btnJesse.classList.remove('text-slate-600', 'dark:text-slate-300', 'hover:text-slate-900', 'dark:hover:text-white');
+          activeBtn = btnJesse;
+          document.getElementById('mainContainer').classList.remove('max-w-7xl');
+          document.getElementById('mainContainer').classList.add('max-w-[95%]');
+        }
+
+        if (activeBtn) {
+          activeBtn.setAttribute('aria-selected', 'true');
+          activeBtn.classList.remove('text-slate-600', 'dark:text-slate-300', 'hover:text-slate-900', 'dark:hover:text-white');
+          activeBtn.classList.add('text-white');
+
+          // Move Glider
+          glider.style.width = `${activeBtn.offsetWidth}px`;
+          glider.style.transform = `translateX(${activeBtn.offsetLeft}px)`;
         }
       }
+
       btnLoan.addEventListener('click', () => show('loan'));
       btnQR.addEventListener('click', () => show('qr'));
       btnJesse.addEventListener('click', () => show('jesse'));
 
-      // Initial call to set correct styles based on default selected tab
-      show('loan'); // Assuming 'loan' is the default selected tab
+      // Initial call
+      // Wait for layout to stabilize for correct measurements
+      window.addEventListener('load', () => {
+        show('loan');
+        // Recalculate on resize
+        window.addEventListener('resize', () => {
+          const current = document.querySelector('.tab-btn[aria-selected="true"]');
+          if (current) {
+            glider.style.width = `${current.offsetWidth}px`;
+            glider.style.transform = `translateX(${current.offsetLeft}px)`;
+          }
+        });
+      });
     })();
   </script>
 
@@ -1143,11 +1178,11 @@
       const kpiBtnScreenshot = document.getElementById('kpiBtnScreenshot');
 
       const KPI_HEADERS = [
-        { heading: "", sub: ["rep"] },
-        { heading: "Legends", sub: ["coa", "boa", "cfab", "bfab", "oneup", "gm"] },
-        { heading: "GP", sub: ["gp"] },
-        { heading: "Connections", sub: ["p2p", "rs", "ict"] },
-        { heading: "Other", sub: ["dev", "accs", "trend", "bills", "topup", "pp", "com"] }
+        { heading: "", sub: ["rep"], colorClass: "" },
+        { heading: "Legends", sub: ["coa", "boa", "cfab", "bfab", "oneup", "gm"], colorClass: "bg-gradient-to-r from-blue-400 to-blue-600 text-white shadow-blue-200 dark:shadow-none" },
+        { heading: "GP", sub: ["gp"], colorClass: "bg-gradient-to-r from-emerald-400 to-emerald-600 text-white shadow-emerald-200 dark:shadow-none" },
+        { heading: "Connections", sub: ["p2p", "rs", "ict"], colorClass: "bg-gradient-to-r from-purple-400 to-purple-600 text-white shadow-purple-200 dark:shadow-none" },
+        { heading: "Other", sub: ["dev", "accs", "trend", "bills", "topup", "pp", "com"], colorClass: "bg-gradient-to-r from-orange-400 to-orange-600 text-white shadow-orange-200 dark:shadow-none" }
       ];
       const KPI_COLS = {
         rep: "Rep", gp: "Gross Profit", gm: "Gen Merch", coa: "Con OA", cfab: "Con FAB",
@@ -1267,11 +1302,17 @@
         tr1.style.borderRadius = "1rem 1rem 0 0";
         KPI_HEADERS.forEach(h => {
           const th = document.createElement('th');
-          th.textContent = h.heading;
           th.colSpan = h.sub.length;
-          th.className = "px-2 py-4 font-bold text-center border-r border-white/30 last:border-r-0";
-          if (h.heading === "") {
-            th.className = "px-2 py-4 bg-white/60 dark:bg-slate-700/90 backdrop-blur-sm border-r-0"; // Empty corner - no border
+
+          if (h.colorClass) {
+            th.className = "p-1"; // Padding for separation
+            const div = document.createElement('div');
+            div.textContent = h.heading;
+            div.className = `py-2 px-4 rounded-xl shadow-md font-bold text-center ${h.colorClass}`;
+            th.appendChild(div);
+          } else {
+            th.textContent = h.heading;
+            th.className = "px-2 py-4 bg-white/60 dark:bg-slate-700/90 backdrop-blur-sm border-r-0"; // Empty corner
             th.style.backdropFilter = "blur(12px)";
           }
           tr1.appendChild(th);
@@ -1300,17 +1341,17 @@
         tbody.className = "divide-y divide-slate-200/30";
         rows.forEach((r, i) => {
           const tr = document.createElement('tr');
-          tr.className = "bg-white/40 dark:bg-slate-700/40 backdrop-blur-sm hover:bg-slate-50/80 dark:hover:from-slate-600/60 dark:hover:to-slate-700/40 hover:shadow-md transition-all duration-300 group border-b border-white/20 dark:border-slate-600/20";
+          tr.className = "bg-white/40 dark:bg-slate-700/40 backdrop-blur-sm hover:bg-slate-50/80 dark:hover:from-slate-600/60 dark:hover:to-slate-700/40 hover:shadow-md transition-all duration-300 group border-b border-slate-300 dark:border-slate-700";
           tr.style.backdropFilter = "blur(8px)";
           kpiSubHeadings.forEach(k => {
             const td = document.createElement('td');
-            td.className = "px-2 py-5 text-sm text-slate-700 dark:text-white border-r border-white/10 dark:border-slate-600/10 last:border-r-0";
+            td.className = "px-2 py-2 text-sm text-slate-700 dark:text-white border-r border-white/10 dark:border-slate-600/10 last:border-r-0";
 
             let val = r[k];
 
             // Special styling for Rep column
             if (k === 'rep') {
-              td.className = "px-2 py-5 text-base font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 group-hover:scale-105 transition-all duration-300 whitespace-nowrap border-r border-white/10 dark:border-slate-600/10 last:border-r-0";
+              td.className = "px-2 py-2 text-base font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 group-hover:scale-105 transition-all duration-300 whitespace-nowrap border-r border-white/10 dark:border-slate-600/10 last:border-r-0";
             }
 
             // Special styling for Money columns - Glass pill effect

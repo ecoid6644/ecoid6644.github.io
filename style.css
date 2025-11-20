@@ -104,27 +104,26 @@ body {
 /* Tab Buttons */
 .tab-btn {
   position: relative;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
   border: 1px solid transparent;
+  background: transparent;
 }
 
 .tab-btn[aria-selected="true"] {
-  background: var(--primary-gradient);
+  background: transparent;
   color: white;
-  box-shadow: 0 4px 12px rgba(0, 197, 160, 0.3);
   border-color: transparent;
 }
 
 .tab-btn[aria-selected="false"] {
-  background: white;
+  background: transparent;
   color: var(--text-muted);
-  border-color: var(--border-color);
+  border-color: transparent;
 }
 
 .tab-btn[aria-selected="false"]:hover {
-  background: #f8fafc;
+  background: transparent;
   color: var(--text-main);
-  border-color: #cbd5e1;
 }
 
 /* Inputs & Selects */
