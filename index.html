@@ -11,6 +11,27 @@
   <script>
     tailwind.config = {
       darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { opacity: '0', transform: 'translateY(20px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            }
+          }
+        }
+      }
     }
   </script>
   <!-- SheetJS (read) + ExcelJS (write) -->
@@ -86,6 +107,17 @@
               <path d="M12 21v-1" />
             </svg>
             QR Generator
+          </button>
+          <button id="tabBtnTargets"
+            class="tab-btn relative z-10 flex items-center gap-2 rounded-xl px-6 py-2.5 font-semibold text-sm transition-colors duration-300"
+            aria-selected="false">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20V10" />
+              <path d="M18 20V4" />
+              <path d="M6 20v-4" />
+            </svg>
+            Store Targets
           </button>
           <button id="tabBtnJesse"
             class="tab-btn relative z-10 flex items-center gap-2 rounded-xl px-6 py-2.5 font-semibold text-sm transition-colors duration-300"
@@ -419,6 +451,231 @@
         </div>
       </section>
 
+      <!-- Store Targets Tab -->
+      <section id="tab-targets" class="hidden animate-fade-in space-y-8">
+        <!-- Controls Bar -->
+        <section class="glass-panel p-8 rounded-2xl animate-slide-up" style="animation-delay: 0.1s;">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="group"><label
+                class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider group-focus-within:text-[#00c5a0] transition-colors">Store
+                Location</label><select id="storeSelect"
+                class="w-full input-premium py-2.5 px-4 rounded-xl text-sm font-medium appearance-none cursor-pointer">
+                <option value="" selected disabled>Select a store…</option>
+                <option>Albany</option>
+                <option>Glenfield</option>
+                <option>Silverdale</option>
+                <option>Kerikeri</option>
+                <option>Whangarei</option>
+                <option>Queen Street</option>
+                <option>New Market</option>
+                <option>Shore City</option>
+                <option>NorthWest</option>
+              </select></div>
+            <div class="group"><label
+                class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider group-focus-within:text-[#00c5a0] transition-colors">Target
+                Month</label><input type="month" id="monthPicker"
+                class="w-full input-premium py-2.5 px-4 rounded-xl text-sm font-medium"></div>
+            <div class="group"><label
+                class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider group-focus-within:text-[#00c5a0] transition-colors">Today's
+                Date</label><input type="date" id="todayPicker"
+                class="w-full input-premium py-2.5 px-4 rounded-xl text-sm font-medium"></div>
+            <div class="flex items-end">
+              <div
+                class="px-4 py-2.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-2.5 w-full justify-center">
+                <span class="relative flex h-2 w-2"><span id="csvStatusPing"
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span><span
+                    id="csvStatusDot" class="relative inline-flex rounded-full h-2 w-2 bg-slate-400"></span></span><span
+                  id="csvStatus">No store selected</span>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- Configuration Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Metrics -->
+          <div class="glass-panel rounded-2xl p-8 animate-slide-up" style="animation-delay: 0.2s;">
+            <div class="flex items-center justify-between mb-5">
+              <h3 class="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
+                <div class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-[#00c5a0]"><svg
+                    xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="20" x2="12" y2="10" />
+                    <line x1="18" y1="20" x2="18" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="16" />
+                  </svg></div>Metrics
+              </h3><span
+                class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-300 px-3 py-1 rounded-full">Equalized</span>
+            </div>
+            <div class="text-xs text-slate-500 dark:text-slate-400 mb-5">Money metrics show $ with 2dp. KPIs split
+              by each rep's weekly hours / 40.</div>
+            <div id="metricsList" class="space-y-4 max-h-80 overflow-y-auto custom-scrollbar"></div>
+            <button class="w-full mt-4 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:text-[#00c5a0] hover:border-[#00c5a0] text-sm font-semibold transition-colors" onclick="addMetric()">+ Add Metric</button>
+          </div>
+          <!-- Roster -->
+          <div class="glass-panel rounded-2xl p-8 animate-slide-up" style="animation-delay: 0.3s;">
+            <div class="flex items-center justify-between mb-5">
+              <h3 class="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
+                <div class="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-500"><svg
+                    xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg></div>Roster
+              </h3><span id="rosterCount"
+                class="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300 px-3 py-1 rounded-full">0
+                Active</span>
+            </div>
+            <div id="repsList" class="space-y-4 max-h-80 overflow-y-auto custom-scrollbar"></div>
+            <div class="flex gap-3 mt-4">
+              <button class="flex-1 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:text-blue-500 hover:border-blue-500 text-sm font-semibold transition-colors" onclick="addRep('FT')">+ Add FT</button>
+              <button class="flex-1 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:text-blue-500 hover:border-blue-500 text-sm font-semibold transition-colors" onclick="addRep('PT')">+ Add PT</button>
+            </div>
+          </div>
+          <!-- Data Import -->
+          <div class="glass-panel rounded-2xl p-8 animate-slide-up" style="animation-delay: 0.4s;">
+            <div class="flex items-center justify-between mb-5">
+              <h3 class="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
+                <div class="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-500"><svg
+                    xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg></div>Data Import
+              </h3><span
+                class="text-xs font-bold uppercase tracking-wider text-purple-700 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 px-3 py-1 rounded-full">CSV</span>
+            </div>
+            <div
+              class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-8 text-center hover:bg-purple-50/50 dark:hover:bg-purple-900/10 hover:border-purple-300 dark:hover:border-purple-700 transition-all duration-300 cursor-pointer group relative">
+              <input id="csvFiles" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values" multiple
+                class="absolute inset-0 opacity-0 cursor-pointer">
+              <div
+                class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-500 mx-auto mb-3 group-hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </div>
+              <p class="font-semibold text-slate-700 dark:text-slate-200">Click to upload CSVs</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Drop store sales & attachment reports
+              </p>
+            </div>
+            <div id="importLog" class="text-xs text-slate-500 dark:text-slate-400 mt-3 text-center min-h-[1.5em]"></div>
+          </div>
+        </div>
+        <!-- Overview Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-slide-up" style="animation-delay: 0.5s;">
+          <!-- Store Overview (2/3 width) -->
+          <div class="lg:col-span-2 glass-panel rounded-2xl p-8">
+            <div class="flex items-center justify-between mb-8">
+              <h3 class="font-bold text-lg text-slate-800 dark:text-white">Store Overview</h3><span id="daysLeftPill"
+                class="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full"></span>
+            </div>
+            <div id="storeCards" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8"></div>
+          </div>
+          <!-- Rates Overview (1/3 width) -->
+          <div class="glass-panel rounded-2xl p-8">
+            <div class="flex items-center justify-between mb-8">
+              <h3 class="font-bold text-lg text-slate-800 dark:text-white">Rates Overview</h3><span
+                class="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">%
+                (2dp)</span>
+            </div>
+            <div id="ratesOverview" class="space-y-4"></div>
+            <div
+              class="mt-6 p-4 rounded-xl bg-amber-50/80 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+              <strong class="block mb-1">Heads-up: </strong> These rates are calculated as a simple average
+              across the store's <em>active roster</em> (missing = 0.00%). Sisense uses volume-weighted rates,
+              so numbers may differ.
+            </div>
+          </div>
+        </div>
+        <!-- Per-Rep Progress -->
+        <section class="glass-panel rounded-2xl p-8 animate-slide-up" style="animation-delay: 0.6s;">
+          <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-8">Per-Rep Progress</h2>
+          <div id="repTables"></div>
+        </section>
+
+        <!-- Start Store Modal -->
+        <div id="startBackdrop"
+          class="backdrop fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 opacity-0 transition-opacity duration-300 p-4">
+          <div class="glass-panel rounded-2xl max-w-md w-full p-8 transform scale-95 transition-transform duration-300"
+            id="startModalContent">
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Choose a Store</h2>
+            <p class="text-slate-500 dark:text-slate-400 text-sm mb-8">Select your location to load the dashboard.</p>
+            <div class="space-y-4">
+              <div> <label
+                  class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">Store</label>
+                <select id="startStore" class="w-full input-premium py-3 px-4 rounded-xl">
+                  <option value="" selected disabled>Select a store…</option>
+                  <option>Albany</option>
+                  <option>Glenfield</option>
+                  <option>Silverdale</option>
+                  <option>Kerikeri</option>
+                  <option>Whangarei</option>
+                  <option>Queen Street</option>
+                  <option>New Market</option>
+                  <option>Shore City</option>
+                  <option>NorthWest</option>
+                </select>
+              </div> <button id="startGo" disabled
+                class="w-full py-3 rounded-xl bg-gradient-to-r from-[#046b30] to-[#00c5a0] text-white font-bold shadow-lg disabled:opacity-50 disabled:shadow-none">Open
+                Dashboard</button>
+            </div>
+            <p class="text-center text-xs text-slate-400 mt-4">If the store hasn't been set up, the setup wizard will
+              appear.
+            </p>
+          </div>
+        </div>
+
+        <!-- Setup Modal -->
+        <div id="setupBackdrop"
+          class="backdrop fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 opacity-0 transition-opacity duration-300 p-4">
+          <div class="glass-panel rounded-2xl max-w-lg w-full p-8 transform scale-95 transition-transform duration-300">
+            <div class="flex items-center justify-between mb-8">
+              <h2 class="text-xl font-bold text-slate-800 dark:text-white">Set up <span id="setupStoreName"
+                  class="text-[#00c5a0]"></span></h2> <button onclick="closeSetup()"
+                class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"> <svg xmlns="http://www.w3.org/2000/svg"
+                  width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg> </button>
+            </div>
+            <!-- Step 1 -->
+            <div id="setupStep1">
+              <div class="text-sm text-slate-600 dark:text-slate-300 mb-5">Step 1 of 2 — Upload the two CSVs for this
+                store (sales + attachment rates). The data loads automatically.</div>
+              <div class="flex gap-3 mb-5"> <input id="setupCsvFiles" type="file"
+                  accept=".csv,.tsv,text/csv,text/tab-separated-values" multiple style="display:none"> <label
+                  for="setupCsvFiles"
+                  class="flex-1 py-3 px-4 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-semibold text-center cursor-pointer hover:border-[#00c5a0] hover:text-[#00c5a0] transition-colors">Upload
+                  CSVs</label> <button id="setupNext" disabled
+                  class="px-6 py-3 rounded-xl bg-gradient-to-r from-[#046b30] to-[#00c5a0] text-white font-bold shadow-lg disabled:opacity-50">Next</button>
+              </div>
+              <div id="setupLog" class="text-xs text-slate-500 dark:text-slate-400 min-h-[1.5em]"></div>
+            </div>
+            <!-- Step 2 -->
+            <div id="setupStep2" style="display:none">
+              <div class="text-sm text-slate-600 dark:text-slate-300 mb-5">Step 2 of 2 — Confirm your roster, hours
+                and FT/PT. Uncheck names that don't belong to this store.</div>
+              <div id="confirmRoster"
+                class="max-h-80 overflow-y-auto custom-scrollbar border border-slate-200 dark:border-slate-700 rounded-xl p-3 mb-5">
+              </div>
+              <div class="flex gap-3"> <button id="setupBack"
+                  class="flex-1 py-3 rounded-xl border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">Back</button>
+                <button id="setupDone"
+                  class="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#046b30] to-[#00c5a0] text-white font-bold shadow-lg">Save
+                  & Finish</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Jesse's Tools Tab -->
       <section id="tab-jesse" class="hidden animate-fade-in space-y-6">
         <!-- Sub-navigation -->
@@ -491,9 +748,12 @@
       const btnLoan = document.getElementById('tabBtnLoan');
       const btnQR = document.getElementById('tabBtnQR');
       const btnJesse = document.getElementById('tabBtnJesse');
+      const btnTargets = document.getElementById('tabBtnTargets');
+
       const tabLoan = document.getElementById('tab-loan');
       const tabQR = document.getElementById('tab-qr');
       const tabJesse = document.getElementById('tab-jesse');
+      const tabTargets = document.getElementById('tab-targets');
       const glider = document.getElementById('tabGlider');
 
       function show(which) {
@@ -501,14 +761,16 @@
         tabLoan.classList.add('hidden');
         tabQR.classList.add('hidden');
         tabJesse.classList.add('hidden');
+        tabTargets.classList.add('hidden');
 
         // Reset Aria
         btnLoan.setAttribute('aria-selected', 'false');
         btnQR.setAttribute('aria-selected', 'false');
         btnJesse.setAttribute('aria-selected', 'false');
+        btnTargets.setAttribute('aria-selected', 'false');
 
         // Reset text colors
-        [btnLoan, btnQR, btnJesse].forEach(btn => {
+        [btnLoan, btnQR, btnJesse, btnTargets].forEach(btn => {
           btn.classList.remove('text-white');
           btn.classList.add('text-slate-600', 'dark:text-slate-300', 'hover:text-slate-900', 'dark:hover:text-white');
         });
@@ -531,6 +793,16 @@
           activeBtn = btnJesse;
           document.getElementById('mainContainer').classList.remove('max-w-7xl');
           document.getElementById('mainContainer').classList.add('max-w-[95%]');
+        } else if (which === 'targets') {
+          tabTargets.classList.remove('hidden');
+          activeBtn = btnTargets;
+          document.getElementById('mainContainer').classList.remove('max-w-[95%]');
+          document.getElementById('mainContainer').classList.add('max-w-7xl');
+          // Optional: Open modal if no store selected?
+          // if(!document.getElementById('storeSelect').value) {
+          //   const el = document.getElementById('startBackdrop');
+          //   if(el) el.classList.add('show');
+          // }
         }
 
         if (activeBtn) {
@@ -547,6 +819,7 @@
       btnLoan.addEventListener('click', () => show('loan'));
       btnQR.addEventListener('click', () => show('qr'));
       btnJesse.addEventListener('click', () => show('jesse'));
+      btnTargets.addEventListener('click', () => show('targets'));
 
       // Initial call
       // Wait for layout to stabilize for correct measurements
@@ -1434,6 +1707,7 @@
 
     })();
   </script>
+  <script src="store-targets.js"></script>
 </body>
 
 </html>
