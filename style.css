@@ -246,154 +246,175 @@ tbody tr:hover td {
 
 /* Dark Mode Styles */
 .dark body {
-  background-color: #0f172a;
-  color: #e2e8f0;
+  background-color: #1e293b;
+  /* Slate 800 - Lighter "Navy" Dark */
+  color: #f1f5f9;
+  /* Slate 100 */
   background-image:
-    radial-gradient(circle at 0% 0%, rgba(4, 107, 48, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(0, 197, 160, 0.15) 0%, transparent 50%);
+    radial-gradient(circle at 0% 0%, rgba(4, 107, 48, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(0, 197, 160, 0.15) 0%, transparent 40%);
 }
 
 .dark .card {
-  background: rgba(30, 41, 59, 0.7);
+  background: rgba(51, 65, 85, 0.6);
+  /* Slate 700 with opacity */
   border-color: rgba(71, 85, 105, 0.4);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  /* Slate 500 */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
 }
 
 .dark .card:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  background: rgba(51, 65, 85, 0.8);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  border-color: rgba(94, 110, 133, 0.5);
+  /* Lighter Slate border */
 }
 
 .dark .tab-btn[aria-selected="false"] {
-  background: rgba(30, 41, 59, 0.6);
-  color: #94a3b8;
-  border-color: rgba(71, 85, 105, 0.4);
+  background: rgba(71, 85, 105, 0.5);
+  /* Slate 600 */
+  color: #cbd5e1;
+  /* Slate 300 */
+  border-color: rgba(71, 85, 105, 0.3);
 }
 
 .dark .tab-btn[aria-selected="false"]:hover {
-  background: rgba(51, 65, 85, 0.8);
-  color: #cbd5e1;
-  border-color: rgba(100, 116, 139, 0.6);
+  background: rgba(100, 116, 139, 0.5);
+  /* Slate 500 */
+  color: #f1f5f9;
+  border-color: rgba(100, 116, 139, 0.5);
 }
 
 .dark input,
 .dark select {
-  background: rgba(30, 41, 59, 0.6);
-  border-color: rgba(71, 85, 105, 0.5);
-  color: #e2e8f0;
+  background: rgba(71, 85, 105, 0.4);
+  border-color: rgba(100, 116, 139, 0.5);
+  color: #f1f5f9;
 }
 
 .dark input:focus,
 .dark select:focus {
   border-color: var(--primary);
-  background: rgba(30, 41, 59, 0.8);
+  background: rgba(71, 85, 105, 0.8);
 }
 
 .dark input::placeholder {
-  color: #64748b;
+  color: #cbd5e1;
+  /* Slate 300 */
 }
 
 .dark .table-container {
-  border-color: rgba(71, 85, 105, 0.5);
-  background: rgba(30, 41, 59, 0.6);
-}
-
-.dark th {
-  background: rgba(15, 23, 42, 0.8);
-  color: #94a3b8;
-  border-bottom-color: rgba(71, 85, 105, 0.5);
-}
-
-.dark td {
-  color: #cbd5e1;
-  border-bottom-color: rgba(51, 65, 85, 0.3);
-}
-
-.dark tbody tr:hover td {
+  border-color: rgba(100, 116, 139, 0.4);
   background: rgba(51, 65, 85, 0.4);
 }
 
-.dark .btn-secondary {
+.dark th {
   background: rgba(30, 41, 59, 0.8);
-  border-color: rgba(71, 85, 105, 0.5);
+  /* Slate 900 header */
+  color: #cbd5e1;
+  border-bottom-color: rgba(100, 116, 139, 0.4);
+}
+
+.dark td {
   color: #e2e8f0;
+  /* Slate 200 */
+  border-bottom-color: rgba(71, 85, 105, 0.3);
 }
 
-.dark .btn-secondary:hover {
-  background: rgba(51, 65, 85, 0.9);
-  border-color: rgba(100, 116, 139, 0.6);
-  color: var(--primary);
+.dark tbody tr:hover td {
+  background: rgba(71, 85, 105, 0.3);
 }
 
-/* Dark mode text colors */
-.dark .text-slate-900 {
+.dark .btn-secondary {
+  background: rgba(51, 65, 85, 0.7);
+  border-color: rgba(100, 116, 139, 0.5);
   color: #f1f5f9;
 }
 
+.dark .btn-secondary:hover {
+  background: rgba(71, 85, 105, 0.8);
+  border-color: rgba(148, 163, 184, 0.6);
+  /* Slate 400 */
+  color: var(--primary);
+}
+
+/* Dark mode text colors - Slate Palette */
+.dark .text-slate-900 {
+  color: #f8fafc;
+  /* Slate 50 */
+}
+
 .dark .text-slate-800 {
-  color: #e2e8f0;
+  color: #f1f5f9;
+  /* Slate 100 */
 }
 
 .dark .text-slate-700 {
-  color: #cbd5e1;
+  color: #e2e8f0;
+  /* Slate 200 */
 }
 
 .dark .text-slate-600 {
-  color: #94a3b8;
+  color: #cbd5e1;
+  /* Slate 300 */
 }
 
 .dark .text-slate-500 {
-  color: #64748b;
+  color: #94a3b8;
+  /* Slate 400 */
 }
 
 .dark .text-slate-400 {
-  color: #475569;
+  color: #64748b;
+  /* Slate 500 */
 }
 
 /* Dark mode backgrounds */
 .dark .bg-slate-50\/50 {
-  background-color: rgba(30, 41, 59, 0.3) !important;
+  background-color: rgba(51, 65, 85, 0.3) !important;
+  /* Lighter Slate */
 }
 
 .dark .bg-slate-50 {
-  background-color: rgba(30, 41, 59, 0.4);
+  background-color: rgba(51, 65, 85, 0.4);
 }
 
 .dark .bg-slate-100 {
-  background-color: rgba(51, 65, 85, 0.6);
+  background-color: rgba(71, 85, 105, 0.5);
 }
 
 .dark .bg-white {
-  background-color: rgba(30, 41, 59, 0.8);
+  background-color: rgba(51, 65, 85, 0.8);
 }
 
 .dark .bg-emerald-50\/50 {
-  background-color: rgba(4, 107, 48, 0.1) !important;
+  background-color: rgba(16, 185, 129, 0.15) !important;
 }
 
 .dark .bg-blue-50\/50 {
-  background-color: rgba(59, 130, 246, 0.1) !important;
+  background-color: rgba(59, 130, 246, 0.15) !important;
 }
 
 .dark .bg-purple-50\/50 {
-  background-color: rgba(168, 85, 247, 0.1) !important;
+  background-color: rgba(168, 85, 247, 0.15) !important;
 }
 
 /* Dark mode borders */
 .dark .border-slate-100 {
-  border-color: rgba(71, 85, 105, 0.3);
+  border-color: rgba(100, 116, 139, 0.3);
 }
 
 .dark .border-slate-200 {
-  border-color: rgba(71, 85, 105, 0.4);
+  border-color: rgba(100, 116, 139, 0.4);
 }
 
 /* Dark mode KPI cards */
 .dark .bg-emerald-50 {
-  background-color: rgba(4, 107, 48, 0.15);
+  background-color: rgba(6, 78, 59, 0.25);
 }
 
 .dark .border-emerald-100 {
-  border-color: rgba(4, 107, 48, 0.3);
+  border-color: rgba(6, 78, 59, 0.5);
 }
 
 .dark .text-emerald-600 {
@@ -401,15 +422,16 @@ tbody tr:hover td {
 }
 
 .dark .text-emerald-700 {
-  color: #10b981;
+  color: #6ee7b7;
+  /* Lighter emerald text */
 }
 
 .dark .bg-blue-50 {
-  background-color: rgba(59, 130, 246, 0.15);
+  background-color: rgba(30, 58, 138, 0.25);
 }
 
 .dark .border-blue-100 {
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: rgba(30, 58, 138, 0.5);
 }
 
 .dark .text-blue-600 {
@@ -417,15 +439,16 @@ tbody tr:hover td {
 }
 
 .dark .text-blue-700 {
-  color: #3b82f6;
+  color: #93c5fd;
+  /* Lighter blue text */
 }
 
 .dark .bg-purple-50 {
-  background-color: rgba(168, 85, 247, 0.15);
+  background-color: rgba(88, 28, 135, 0.25);
 }
 
 .dark .border-purple-100 {
-  border-color: rgba(168, 85, 247, 0.3);
+  border-color: rgba(88, 28, 135, 0.5);
 }
 
 .dark .text-purple-600 {
@@ -433,31 +456,32 @@ tbody tr:hover td {
 }
 
 .dark .text-purple-700 {
-  color: #a855f7;
+  color: #e9d5ff;
+  /* Lighter purple text */
 }
 
 /* Dark mode alert boxes */
 .dark .bg-red-50 {
-  background-color: rgba(239, 68, 68, 0.15);
+  background-color: rgba(127, 29, 29, 0.25);
 }
 
 .dark .border-red-100,
 .dark .border-red-200 {
-  border-color: rgba(239, 68, 68, 0.3);
+  border-color: rgba(127, 29, 29, 0.5);
 }
 
 .dark .text-red-600,
 .dark .text-red-700 {
-  color: #f87171;
+  color: #fca5a5;
 }
 
 /* Dark mode scrollbar */
 .dark ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: #64748b;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #94a3b8;
 }
 
 /* --- Store Targets Specific Styles --- */
@@ -473,9 +497,10 @@ tbody tr:hover td {
 }
 
 .dark .glass-panel {
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(51, 65, 85, 0.7);
+  /* Slate 700 */
   border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
 }
 
 .glass-panel:hover {
@@ -489,13 +514,16 @@ tbody tr:hover td {
   border: 1px solid rgba(226, 232, 240, 0.6);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   backdrop-filter: blur(4px);
-  border-radius: 0.75rem; /* Ensure rounded */
+  border-radius: 0.75rem;
+  /* Ensure rounded */
   transition: all 0.3s ease;
 }
 
 .dark .input-premium {
-  background: rgba(15, 23, 42, 0.6);
-  border-color: rgba(71, 85, 105, 0.5);
+  background: rgba(71, 85, 105, 0.6);
+  /* Slate 600 */
+  border-color: rgba(100, 116, 139, 0.5);
+  /* Slate 500 */
   color: white;
 }
 
@@ -564,10 +592,11 @@ tbody tr:hover td {
 }
 
 .dark .kpi-card {
-  background: rgba(30, 41, 59, 0.75);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  border-color: rgba(71, 85, 105, 0.3);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: rgba(51, 65, 85, 0.75);
+  /* Slate 700 */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  border-color: rgba(100, 116, 139, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .kpi-card:hover {
@@ -578,8 +607,9 @@ tbody tr:hover td {
 }
 
 .dark .kpi-card:hover {
-  background: rgba(30, 41, 59, 0.75);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  background: rgba(71, 85, 105, 0.75);
+  /* Slate 600 */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
 .kpi-top {
@@ -598,7 +628,8 @@ tbody tr:hover td {
 }
 
 .dark .kpi-title {
-  color: #94a3b8;
+  color: #cbd5e1;
+  /* Slate 300 */
 }
 
 .kpi-val {
@@ -608,7 +639,8 @@ tbody tr:hover td {
 }
 
 .dark .kpi-val {
-  color: #f1f5f9;
+  color: #f8fafc;
+  /* Slate 50 */
 }
 
 .kpi-sub {
@@ -620,7 +652,7 @@ tbody tr:hover td {
 }
 
 .dark .kpi-sub {
-  color: #94a3b8;
+  color: #cbd5e1;
 }
 
 /* Progress Bars */
@@ -635,7 +667,8 @@ tbody tr:hover td {
 
 .dark .bar,
 .dark .rowbar {
-  background: #334155;
+  background: #475569;
+  /* Slate 600 */
 }
 
 .bar i,
@@ -659,8 +692,9 @@ tbody tr:hover td {
 }
 
 .dark .pill {
-  background: #1e293b;
-  color: #cbd5e1;
+  background: #334155;
+  /* Slate 700 */
+  color: #f1f5f9;
 }
 
 .pill.over {
@@ -669,8 +703,8 @@ tbody tr:hover td {
 }
 
 .dark .pill.over {
-  background: rgba(16, 185, 129, 0.1);
-  color: #34d399;
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
 }
 
 .pill.ok {
@@ -679,8 +713,8 @@ tbody tr:hover td {
 }
 
 .dark .pill.ok {
-  background: rgba(16, 185, 129, 0.1);
-  color: #34d399;
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
 }
 
 /* Rates / Donuts */
@@ -697,10 +731,10 @@ tbody tr:hover td {
 }
 
 .dark .rate-item {
-  background: rgba(30, 41, 59, 0.75);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  border-color: rgba(71, 85, 105, 0.3);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: rgba(51, 65, 85, 0.75);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  border-color: rgba(100, 116, 139, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .donut {

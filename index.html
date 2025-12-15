@@ -63,13 +63,13 @@
         <div>
           <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">One NZ <span
               class="text-slate-400 font-light">|</span> Preston's Toolkit</h1>
-          <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Loan Audit & QR Generator</p>
+          <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Loan Audit • Store Targets • KPIs • QR</p>
         </div>
       </div>
 
       <div class="flex items-center gap-3">
         <nav
-          class="relative flex p-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
+          class="relative flex p-1 gap-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
           <!-- Glider Background -->
           <div id="tabGlider"
             class="absolute top-1 left-1 h-[calc(100%-8px)] rounded-xl bg-gradient-to-br from-[#046b30] to-[#00c5a0] shadow-lg transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] pointer-events-none z-0">
@@ -509,7 +509,9 @@
             <div class="text-xs text-slate-500 dark:text-slate-400 mb-5">Money metrics show $ with 2dp. KPIs split
               by each rep's weekly hours / 40.</div>
             <div id="metricsList" class="space-y-4 max-h-80 overflow-y-auto custom-scrollbar"></div>
-            <button class="w-full mt-4 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:text-[#00c5a0] hover:border-[#00c5a0] text-sm font-semibold transition-colors" onclick="addMetric()">+ Add Metric</button>
+            <button
+              class="w-full mt-4 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:text-[#00c5a0] hover:border-[#00c5a0] text-sm font-semibold transition-colors"
+              onclick="addMetric()">+ Add Metric</button>
           </div>
           <!-- Roster -->
           <div class="glass-panel rounded-2xl p-8 animate-slide-up" style="animation-delay: 0.3s;">
@@ -529,8 +531,12 @@
             </div>
             <div id="repsList" class="space-y-4 max-h-80 overflow-y-auto custom-scrollbar"></div>
             <div class="flex gap-3 mt-4">
-              <button class="flex-1 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:text-blue-500 hover:border-blue-500 text-sm font-semibold transition-colors" onclick="addRep('FT')">+ Add FT</button>
-              <button class="flex-1 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:text-blue-500 hover:border-blue-500 text-sm font-semibold transition-colors" onclick="addRep('PT')">+ Add PT</button>
+              <button
+                class="flex-1 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:text-blue-500 hover:border-blue-500 text-sm font-semibold transition-colors"
+                onclick="addRep('FT')">+ Add FT</button>
+              <button
+                class="flex-1 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:text-blue-500 hover:border-blue-500 text-sm font-semibold transition-colors"
+                onclick="addRep('PT')">+ Add PT</button>
             </div>
           </div>
           <!-- Data Import -->
@@ -638,9 +644,9 @@
             <div class="flex items-center justify-between mb-8">
               <h2 class="text-xl font-bold text-slate-800 dark:text-white">Set up <span id="setupStoreName"
                   class="text-[#00c5a0]"></span></h2> <button onclick="closeSetup()"
-                class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"> <svg xmlns="http://www.w3.org/2000/svg"
-                  width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
+                class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"> <svg
+                  xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg> </button>
@@ -756,6 +762,16 @@
       const tabTargets = document.getElementById('tab-targets');
       const glider = document.getElementById('tabGlider');
 
+      function updateGlider() {
+        const current = document.querySelector('.tab-btn[aria-selected="true"]');
+        if (current) {
+          requestAnimationFrame(() => {
+            glider.style.width = `${current.offsetWidth}px`;
+            glider.style.transform = `translateX(${current.offsetLeft}px)`;
+          });
+        }
+      }
+
       function show(which) {
         // Hide all sections
         tabLoan.classList.add('hidden');
@@ -798,11 +814,6 @@
           activeBtn = btnTargets;
           document.getElementById('mainContainer').classList.remove('max-w-[95%]');
           document.getElementById('mainContainer').classList.add('max-w-7xl');
-          // Optional: Open modal if no store selected?
-          // if(!document.getElementById('storeSelect').value) {
-          //   const el = document.getElementById('startBackdrop');
-          //   if(el) el.classList.add('show');
-          // }
         }
 
         if (activeBtn) {
@@ -810,9 +821,8 @@
           activeBtn.classList.remove('text-slate-600', 'dark:text-slate-300', 'hover:text-slate-900', 'dark:hover:text-white');
           activeBtn.classList.add('text-white');
 
-          // Move Glider
-          glider.style.width = `${activeBtn.offsetWidth}px`;
-          glider.style.transform = `translateX(${activeBtn.offsetLeft}px)`;
+          // Move Glider with RAF to ensure transition
+          updateGlider();
         }
       }
 
@@ -822,17 +832,10 @@
       btnTargets.addEventListener('click', () => show('targets'));
 
       // Initial call
-      // Wait for layout to stabilize for correct measurements
       window.addEventListener('load', () => {
         show('loan');
         // Recalculate on resize
-        window.addEventListener('resize', () => {
-          const current = document.querySelector('.tab-btn[aria-selected="true"]');
-          if (current) {
-            glider.style.width = `${current.offsetWidth}px`;
-            glider.style.transform = `translateX(${current.offsetLeft}px)`;
-          }
-        });
+        window.addEventListener('resize', updateGlider);
       });
     })();
   </script>
