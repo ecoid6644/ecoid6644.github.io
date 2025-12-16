@@ -1087,7 +1087,8 @@
       }
 
       elManual.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === "Tab") {
+        // Fix: Detect Ctrl+J (Line Feed) which some scanners send, causing downloads to open
+        if ((e.ctrlKey && e.key === 'j') || e.key === "Enter" || e.key === "Tab") {
           e.preventDefault();
           addScan(e.target.value);
           e.target.value = "";
