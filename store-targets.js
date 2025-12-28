@@ -214,7 +214,7 @@
 
     if (!currentStore) {
       const il = document.getElementById('importLog');
-      if(il) il.textContent = "Select a store first.";
+      if (il) il.textContent = "Select a store first.";
       openStart();
       return
     }
@@ -253,7 +253,7 @@
         nc: findCol(headerNorm, exact.nc), p2p: findCol(headerNorm, exact.p2p), fab: findCol(headerNorm, exact.fab), boa: findCol(headerNorm, exact.boa),
         bfab: findCol(headerNorm, exact.bfab), ictn: findCol(headerNorm, exact.ict_new), ict: findCol(headerNorm, exact.ict_any)
       };
-      
+
       const hasAnyRate = [idx.trend, idx.r43, idx.one].some(i => i > -1);
       const hasAnyCount = [idx.nc, idx.p2p, idx.fab, idx.boa, idx.bfab, idx.ictn].some(i => i > -1);
       const hasRep = idx.name > -1;
@@ -386,9 +386,9 @@
 
     const repRatesFinal = {};
     ["TREND_AR", "TREND_4_3", "ONE_AR"].forEach(k => {
-      repRatesFinal[k] = {}; 
-      const s = repRatesSum[k] || {}, c = repRatesCnt[k] || {}; 
-      const names = new Set([...(storeData.roster || []).map(r => r.name).filter(Boolean), ...seenNames]); 
+      repRatesFinal[k] = {};
+      const s = repRatesSum[k] || {}, c = repRatesCnt[k] || {};
+      const names = new Set([...(storeData.roster || []).map(r => r.name).filter(Boolean), ...seenNames]);
       for (const n of names) {
         if (s[n] == null) repRatesFinal[k][n] = 0; else repRatesFinal[k][n] = clamp01to100(s[n] / (c[n] || 1))
       }
@@ -404,11 +404,11 @@
 
     storeData.storeRates = storeData.storeRates || {};
     ["TREND_AR", "TREND_4_3", "ONE_AR"].forEach(k => {
-      let v = avgRoster(k); 
-      if (!isFinite(v)) v = (directRates[k] != null) ? directRates[k] : storeData.storeRates[k]; 
+      let v = avgRoster(k);
+      if (!isFinite(v)) v = (directRates[k] != null) ? directRates[k] : storeData.storeRates[k];
       storeData.storeRates[k] = isFinite(v) ? v : 0
     });
-    
+
     localStorage.setItem(`rep_totals_cache::${currentStore}`, JSON.stringify(repTotals));
     localStorage.setItem(`rep_rates_cache::${currentStore}`, JSON.stringify(repRatesFinal));
 
@@ -423,16 +423,16 @@
     });
 
     (storeData.metrics || []).forEach(m => {
-      const k = m.key.toUpperCase(); 
+      const k = m.key.toUpperCase();
       if (storeTotals[k] != null) m.mtd = isMoney2(k) ? Number(storeTotals[k].toFixed(2)) : Math.round(storeTotals[k])
     });
 
     if (logEl) logEl.textContent = logs.join(" • ");
     const il = document.getElementById("importLog");
-    if(il) il.textContent = logs.join(" • ");
+    if (il) il.textContent = logs.join(" • ");
     if (filesHandled > 0) storeData.csvImported = true;
     const cs = document.getElementById("csvStatus");
-    if(cs) cs.textContent = storeData.csvImported ? "Imported" : "Not imported yet";
+    if (cs) cs.textContent = storeData.csvImported ? "Imported" : "Not imported yet";
     saveStore();
     renderAll();
 
@@ -472,7 +472,7 @@
   /* Setup roster confirm */
   function buildRosterConfirm(names) {
     const box = $("#confirmRoster");
-    if(!box) return;
+    if (!box) return;
     box.innerHTML = "";
 
     if (!names.length) {
@@ -515,7 +515,7 @@
   function calcDaysLeft() {
     const mp = $("#monthPicker");
     const tp = $("#todayPicker");
-    if(!mp || !tp) return { daysLeft: 0, daysIn: 0 };
+    if (!mp || !tp) return { daysLeft: 0, daysIn: 0 };
     const m = mp.value,
       t = tp.value;
 
@@ -532,12 +532,12 @@
 
   function renderMetricsList() {
     const holder = $("#metricsList");
-    if(!holder) return;
+    if (!holder) return;
     holder.innerHTML = "";
 
     (storeData?.metrics || []).forEach((m, idx) => {
       const row = document.createElement("div");
-      row.className = "p-4 bg-white/50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 mb-3 hover:border-emerald-400 transition-colors group";
+      row.className = "p-4 bg-white/50 dark:bg-slate-700/60 rounded-xl border border-slate-200 dark:border-slate-600/50 mb-3 hover:border-emerald-400 transition-colors group";
       row.innerHTML = `
         <div class="flex items-start gap-3 mb-3">
           <div class="flex-1">
@@ -563,18 +563,18 @@
       // Bind remove directly
       setTimeout(() => {
         const btn = document.getElementById(`btnRemoveMetric-${idx}`);
-        if(btn) btn.onclick = () => removeMetric(idx);
+        if (btn) btn.onclick = () => removeMetric(idx);
       }, 0);
     });
 
     holder.querySelectorAll("input").forEach(inp => {
       inp.addEventListener("input", e => {
-        const i = Number(e.target.dataset.idx), k = e.target.dataset.k; 
-        const key = storeData.metrics[i].key; 
-        const val = isMoney2(key) ? Number(e.target.value || 0) : Math.round(Number(e.target.value || 0)); 
-        storeData.metrics[i][k] = (k === "label") ? e.target.value : val; 
-        storeData.metrics[i].key = storeData.metrics[i].label.toUpperCase(); 
-        saveStore(); 
+        const i = Number(e.target.dataset.idx), k = e.target.dataset.k;
+        const key = storeData.metrics[i].key;
+        const val = isMoney2(key) ? Number(e.target.value || 0) : Math.round(Number(e.target.value || 0));
+        storeData.metrics[i][k] = (k === "label") ? e.target.value : val;
+        storeData.metrics[i].key = storeData.metrics[i].label.toUpperCase();
+        saveStore();
         renderKPIs()
       })
     })
@@ -600,16 +600,16 @@
 
   function renderRoster() {
     const box = $("#repsList");
-    if(!box) return;
+    if (!box) return;
     box.innerHTML = "";
     const r = storeData?.roster || [];
 
     const rc = $("#rosterCount");
-    if(rc) rc.textContent = `${r.filter(x => x.active !== false).length} active`;
+    if (rc) rc.textContent = `${r.filter(x => x.active !== false).length} active`;
 
     r.forEach((rep, i) => {
       const row = document.createElement("div");
-      row.className = "p-4 bg-white/50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 mb-3 hover:border-blue-400 transition-colors group";
+      row.className = "p-4 bg-white/50 dark:bg-slate-700/60 rounded-xl border border-slate-200 dark:border-slate-600/50 mb-3 hover:border-blue-400 transition-colors group";
       row.innerHTML = `
         <div class="flex items-start gap-3 mb-3">
            <div class="flex-1">
@@ -633,17 +633,17 @@
       `;
       box.appendChild(row);
       setTimeout(() => {
-         const btn = document.getElementById(`btnRemoveRep-${i}`);
-         if(btn) btn.onclick = () => removeRep(i);
+        const btn = document.getElementById(`btnRemoveRep-${i}`);
+        if (btn) btn.onclick = () => removeRep(i);
       }, 0);
     });
 
     box.querySelectorAll("input,select").forEach(inp => {
       inp.addEventListener("input", e => {
-        const i = Number(e.target.dataset.i), k = e.target.dataset.k; 
-        let v = e.target.value; 
-        if (k === "active") v = (v === "true"); 
-        if (k === "hours") v = Math.max(1, Math.min(80, Math.round(Number(v) || 0))); 
+        const i = Number(e.target.dataset.i), k = e.target.dataset.k;
+        let v = e.target.value;
+        if (k === "active") v = (v === "true");
+        if (k === "hours") v = Math.max(1, Math.min(80, Math.round(Number(v) || 0)));
         if (k === "type") {
           storeData.roster[i].type = v; storeData.roster[i].hours = (v === "PT" ? 20 : 40)
         } else {
@@ -706,9 +706,9 @@
     } = calcDaysLeft();
 
     const dlp = $("#daysLeftPill");
-    if(dlp) dlp.textContent = (daysLeft ? `${daysLeft} day${daysLeft > 1 ? "s" : ""} left · ${daysIn} in month` : "Set month + today");
+    if (dlp) dlp.textContent = (daysLeft ? `${daysLeft} day${daysLeft > 1 ? "s" : ""} left · ${daysIn} in month` : "Set month + today");
     const grid = $("#storeCards");
-    if(!grid) return;
+    if (!grid) return;
     grid.innerHTML = "";
 
     (storeData.metrics || []).forEach(m => {
@@ -785,14 +785,15 @@
       </div>`;
     }).join("");
     const ro = $("#ratesOverview");
-    if(ro) ro.innerHTML = metrics;
+    if (ro) ro.innerHTML = metrics;
 
     renderRepTables();
+    renderLeaderboards();
   }
 
   function renderRepTables() {
     const holder = $("#repTables");
-    if(!holder) return;
+    if (!holder) return;
     holder.innerHTML = "";
     holder.className = "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"; // Grid layout
 
@@ -813,7 +814,7 @@
 
       // Header
       let html = `
-        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/50 pb-4">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-600/50/50 pb-4">
            <div>
               <h3 class="font-bold text-lg text-slate-800 dark:text-white">${r.name}</h3>
               <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">${r.type} · ${r.hours} hrs</div>
@@ -828,7 +829,12 @@
       // Metrics List
       (storeData.metrics || []).forEach(m => {
         const unit = (m.target || 0) / (wSum || 1);
-        const kpi = isMoney2(m.key) ? Math.round((unit * weights[idx]) * 100) / 100 : Math.round(unit * weights[idx]);
+        let kpi = isMoney2(m.key) ? Math.round((unit * weights[idx]) * 100) / 100 : Math.round(unit * weights[idx]);
+
+        // Ensure minimum target of 1 when store target exists (prevents 0 targets for small numbers)
+        if (!isMoney2(m.key) && m.target > 0 && kpi === 0) {
+          kpi = 1;
+        }
 
         const repKey = `${currentStore}::${m.key}::${r.i}::mtd`;
         const saved = localStorage.getItem(repKey);
@@ -851,6 +857,8 @@
         const pctRaw = kpi > 0 ? ((repMTDrounded / kpi) * 100) : 0;
         const pct = clamp01to100(pctRaw);
         const isOver = repMTDrounded >= kpi;
+        const overBy = Math.max(repMTDrounded - kpi, 0);
+        const overDisplay = isMoney2(m.key) ? Math.round(overBy * 100) / 100 : Math.ceil(overBy);
         const colorClass = isOver ? "bg-emerald-500" : "bg-slate-500 dark:bg-slate-600";
         const inputValue = isMoney2(m.key) ? repMTDrounded.toFixed(2) : repMTDrounded;
 
@@ -865,6 +873,7 @@
               <div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mb-2">
                  <div class="h-full ${colorClass} rounded-full transition-all duration-1000" style="width:${pct}%"></div>
               </div>
+              ${isOver && overBy > 0 ? `<div class="mb-2"><span class="inline-block px-2 py-0.5 text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full">Over by ${isMoney2(m.key) ? money2(overDisplay) : overDisplay}</span></div>` : ''}
               <div class="flex justify-end">
                  <input class="input-premium py-1 px-2 text-xs text-right w-24 rounded focus:w-full transition-all duration-300" 
                         type="number" 
@@ -885,11 +894,11 @@
       ];
 
       if (rateKeys.some(rk => ratesCache[rk.key]?.[r.name] != null)) {
-        html += `<div class="pt-4 border-t border-slate-100 dark:border-slate-700/50 mt-2"><div class="grid grid-cols-3 gap-2">`;
+        html += `<div class="pt-4 border-t border-slate-100 dark:border-slate-600/50/50 mt-2"><div class="grid grid-cols-3 gap-2">`;
         rateKeys.forEach(rk => {
           const val = ratesCache[rk.key]?.[r.name] || 0;
           html += `
-               <div class="text-center p-2 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+               <div class="text-center p-2 rounded-lg bg-slate-50 dark:bg-slate-700/60">
                   <div class="text-[10px] text-slate-400 font-bold uppercase mb-1">${rk.label}</div>
                   <div class="text-sm font-bold text-slate-700 dark:text-slate-200">${fmtPct2(val)}</div>
                </div>
@@ -904,6 +913,174 @@
     });
   }
 
+  function renderLeaderboards() {
+    const holder = $("#leaderboards");
+    if (!holder) return;
+    holder.innerHTML = "";
+
+    const { rosterActive, weights, wSum } = getActiveRosterWithWeights();
+
+    if (!rosterActive.length) {
+      holder.innerHTML = '<div class="text-center text-slate-500 py-8">Add staff to the roster to see leaderboards.</div>';
+      return;
+    }
+
+    // Pre-calc totals
+    const totalsCache = JSON.parse(localStorage.getItem(`rep_totals_cache::${currentStore}`) || "{}");
+
+    // Create leaderboard grid with stagger animation
+    const leaderboardGrid = document.createElement("div");
+    leaderboardGrid.className = "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8";
+
+    (storeData.metrics || []).forEach((m, metricIndex) => {
+      // Calculate each person's MTD for this metric
+      const repData = rosterActive.map((r, idx) => {
+        const repKey = `${currentStore}::${m.key}::${r.i}::mtd`;
+        const saved = localStorage.getItem(repKey);
+
+        const metricCache = totalsCache[m.key?.toUpperCase?.() || ""] || {};
+        const hasCSVData = Object.keys(metricCache).length > 0;
+
+        let mtdDefault = 0;
+        if (metricCache[r.name] != null) {
+          mtdDefault = metricCache[r.name];
+        } else if (hasCSVData) {
+          mtdDefault = 0;
+        } else {
+          mtdDefault = ((m.mtd || 0) * (weights[idx] / (wSum || 1)));
+        }
+
+        const repMTD = saved ? Number(saved) : mtdDefault;
+        const repMTDrounded = isMoney2(m.key) ? Math.round(repMTD * 100) / 100 : Math.round(repMTD);
+
+        return {
+          name: r.name,
+          mtd: repMTDrounded,
+          type: r.type,
+          hours: r.hours
+        };
+      });
+
+      // Sort by MTD descending
+      repData.sort((a, b) => b.mtd - a.mtd);
+
+      // Skip this leaderboard if no one has any progress (all zeros)
+      const hasProgress = repData.some(rep => rep.mtd > 0);
+
+      // Create leaderboard card with entrance animation
+      const card = document.createElement("div");
+      const animDelay = metricIndex * 50; // Stagger animation
+      card.style.animationDelay = `${animDelay}ms`;
+      card.className = "relative overflow-hidden rounded-3xl border-2 border-slate-200/60 dark:border-slate-700/60 bg-gradient-to-br from-white via-slate-50/50 to-white dark:from-slate-800 dark:via-slate-800/80 dark:to-slate-900 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-500 ease-out opacity-0 animate-[slideUp_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]";
+
+      // Determine if this metric has a clear winner (significant lead)
+      const hasWinner = repData.length > 1 && repData[0].mtd > repData[1].mtd * 1.2;
+      const winnerGlow = hasWinner ? 'after:absolute after:inset-0 after:bg-gradient-to-br after:from-amber-400/10 after:to-transparent after:pointer-events-none after:rounded-3xl' : '';
+
+      let html = `
+        <div class="relative ${winnerGlow}">
+          <div class="p-7">
+            <div class="flex items-center justify-between mb-7">
+              <h3 class="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">${m.label}</h3>
+              <div class="text-xs font-bold text-slate-500 dark:text-slate-400 bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-700 dark:to-slate-800 px-4 py-2 rounded-full shadow-inner border border-slate-200/50 dark:border-slate-600/50">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1.5 text-amber-500">
+                  <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+                </svg>
+                TOP 5
+              </div>
+            </div>
+      `;
+
+      if (!hasProgress) {
+        // Show "No progress yet" message when everyone has 0
+        html += `
+            <div class="flex flex-col items-center justify-center py-12 text-center">
+              <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">No progress yet</p>
+              <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Start tracking ${m.label} to see rankings</p>
+            </div>
+        `;
+      } else {
+        // Show leaderboard with top performers
+        html += `<div class="space-y-2.5">`;
+
+        // Show top 5 performers
+        const topPerformers = repData.slice(0, Math.min(5, repData.length));
+
+        topPerformers.forEach((rep, index) => {
+          const isMoney = isMoney2(m.key);
+          const displayValue = isMoney ? money2(rep.mtd) : rep.mtd.toLocaleString();
+
+          // Medal colors, icons, and effects
+          let medalIcon = "";
+          let rankBg = "bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800";
+          let rankText = "text-slate-700 dark:text-slate-300";
+          let rowBg = "bg-white/70 dark:bg-slate-700/30";
+          let glowEffect = "";
+          let valueColor = "text-slate-800 dark:text-slate-200";
+
+          if (index === 0) {
+            medalIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="text-white drop-shadow-lg"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>';
+            rankBg = "bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 shadow-lg shadow-amber-500/50";
+            rankText = "text-white";
+            rowBg = "bg-gradient-to-r from-amber-50/80 via-white/70 to-white/70 dark:from-amber-900/20 dark:via-slate-700/40 dark:to-slate-700/30";
+            glowEffect = "ring-2 ring-amber-400/30 dark:ring-amber-500/30";
+            valueColor = "text-amber-700 dark:text-amber-400";
+          } else if (index === 1) {
+            medalIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-white drop-shadow-md"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>';
+            rankBg = "bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 shadow-md shadow-slate-400/40";
+            rankText = "text-white";
+            rowBg = "bg-gradient-to-r from-slate-100/80 via-white/70 to-white/70 dark:from-slate-600/20 dark:via-slate-700/40 dark:to-slate-700/30";
+            valueColor = "text-slate-700 dark:text-slate-300";
+          } else if (index === 2) {
+            medalIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-white drop-shadow-md"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>';
+            rankBg = "bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 shadow-md shadow-orange-400/40";
+            rankText = "text-white";
+            rowBg = "bg-gradient-to-r from-orange-50/80 via-white/70 to-white/70 dark:from-orange-900/20 dark:via-slate-700/40 dark:to-slate-700/30";
+            valueColor = "text-orange-700 dark:text-orange-400";
+          }
+
+          const scaleEffect = index === 0 ? "scale-[1.03]" : "";
+          const hoverScale = index === 0 ? "hover:scale-[1.05]" : "hover:scale-[1.02]";
+
+          html += `
+            <div class="flex items-center gap-4 p-4 rounded-2xl ${rowBg} border border-slate-200/40 dark:border-slate-600/30 ${glowEffect} hover:border-emerald-400/60 dark:hover:border-emerald-500/50 transition-all duration-500 ease-out group ${scaleEffect} ${hoverScale} backdrop-blur-sm" style="animation-delay: ${(index + 1) * 50}ms">
+              <div class="flex-shrink-0 w-12 h-12 ${rankBg} rounded-2xl flex items-center justify-center font-black text-base shadow-lg transform group-hover:rotate-6 transition-transform duration-300 ${rankText}">
+                ${index < 3 ? medalIcon : `<span class="text-lg">${index + 1}</span>`}
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-bold text-base text-slate-900 dark:text-white truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-300">${rep.name}</div>
+                <div class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">${rep.type} · ${rep.hours}h/wk</div>
+              </div>
+              <div class="flex-shrink-0 text-right">
+                <div class="font-black text-xl ${valueColor} tabular-nums tracking-tight">${displayValue}</div>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+      }
+
+      html += `
+            </div>
+          </div>
+        </div>
+      `;
+
+      card.innerHTML = html;
+      leaderboardGrid.appendChild(card);
+    });
+
+    holder.appendChild(leaderboardGrid);
+  }
+
   /* Master render */
   function renderAll() {
     renderMetricsList();
@@ -914,19 +1091,19 @@
   /* Start & Setup flow */
   function openStart() {
     const el = document.getElementById('startBackdrop');
-    if(el) el.classList.add('show');
+    if (el) el.classList.add('show');
   }
 
   function closeStart() {
     const el = document.getElementById('startBackdrop');
-    if(el) el.classList.remove('show');
+    if (el) el.classList.remove('show');
   }
 
   function openSetup() {
     const n = $("#setupStoreName");
-    if(n) n.textContent = currentStore || "";
+    if (n) n.textContent = currentStore || "";
     const l = $("#setupLog");
-    if(l) l.textContent = "";
+    if (l) l.textContent = "";
     document.getElementById('setupBackdrop').classList.add('show');
     $("#setupStep1").style.display = "block";
     $("#setupStep2").style.display = "none";
@@ -954,13 +1131,13 @@
     storeData = ensureStoreRecord(s);
 
     const title = $("#title"); // Beware: index.html header uses h1 but maybe no ID. Targets.html used id="title"
-    if(title) title.textContent = `Store Targets — ${s}`;
+    if (title) title.textContent = `Store Targets — ${s}`;
     const ss = $("#storeSelect");
-    if(ss) ss.value = s;
+    if (ss) ss.value = s;
     autoSetDatesIfEmpty();
     applyDatesToStore();
     const cs = $("#csvStatus");
-    if(cs) cs.textContent = storeData.csvImported ? "Imported" : "Not imported yet";
+    if (cs) cs.textContent = storeData.csvImported ? "Imported" : "Not imported yet";
     renderAll();
     if (needSetup(storeData)) openSetup()
   }
@@ -970,48 +1147,48 @@
   /* Wire up */
   // We need to wait for DOM to be ready, but this script is likely deferred or at end of body.
   // We will attach listeners if elements exist.
-  
+
   function initTargets() {
     const startGo = document.getElementById("startGo");
-    if(startGo) {
-       startGo.addEventListener("click", () => {
+    if (startGo) {
+      startGo.addEventListener("click", () => {
         const v = $("#startStore").value; if (!v) return; closeStart(); loadStore(v)
       });
     }
 
     const startStore = document.getElementById("startStore");
-    if(startStore) {
+    if (startStore) {
       startStore.addEventListener("change", e => {
         const btn = document.getElementById("startGo");
-        if(btn) btn.disabled = !e.target.value
+        if (btn) btn.disabled = !e.target.value
       });
     }
 
     const storeSelect = document.getElementById("storeSelect");
-    if(storeSelect) {
+    if (storeSelect) {
       storeSelect.addEventListener("change", e => {
         if (e.target.value) loadStore(e.target.value)
       });
     }
 
     const csvFiles = document.getElementById("csvFiles");
-    if(csvFiles) {
+    if (csvFiles) {
       csvFiles.addEventListener("change", async (e) => {
         const files = Array.from(e.target.files || []);
         const logEl = document.getElementById("importLog");
 
         if (!files.length) {
-          if(logEl) logEl.textContent = "No files selected."; return
+          if (logEl) logEl.textContent = "No files selected."; return
         }
 
-        if(logEl) logEl.textContent = `Importing ${files.length} file(s)…`;
+        if (logEl) logEl.textContent = `Importing ${files.length} file(s)…`;
 
         try {
           await handleCSVImport(files, {
             logEl
           })
         } catch (err) {
-          if(logEl) logEl.textContent = `Import failed: ${err.message || err}`; console.error(err)
+          if (logEl) logEl.textContent = `Import failed: ${err.message || err}`; console.error(err)
         }
 
         e.target.value = "";
@@ -1019,56 +1196,56 @@
     }
 
     const setupCsvFiles = document.getElementById("setupCsvFiles");
-    if(setupCsvFiles) {
+    if (setupCsvFiles) {
       setupCsvFiles.addEventListener("change", async (e) => {
         const files = Array.from(e.target.files || []);
-        const logEl = document.getElementById("setupLog"); 
+        const logEl = document.getElementById("setupLog");
         const nextBtn = document.getElementById("setupNext");
 
         if (!files.length) {
-          if(logEl) logEl.textContent = "No files selected."; return
+          if (logEl) logEl.textContent = "No files selected."; return
         }
-        if(logEl) logEl.textContent = `Importing ${files.length} file(s)…`;
+        if (logEl) logEl.textContent = `Importing ${files.length} file(s)…`;
 
         try {
           await handleCSVImport(files, {
             logEl, nextBtn, collectNames: true
           })
         } catch (err) {
-          if(logEl) logEl.textContent = `Import failed: ${err.message || err}`; console.error(err)
+          if (logEl) logEl.textContent = `Import failed: ${err.message || err}`; console.error(err)
         }
 
         e.target.value = "";
       });
     }
-    
-    const sn = document.getElementById("setupNext"); if(sn) sn.addEventListener("click", toStep2);
-    const sb = document.getElementById("setupBack"); if(sb) sb.addEventListener("click", backToStep1);
+
+    const sn = document.getElementById("setupNext"); if (sn) sn.addEventListener("click", toStep2);
+    const sb = document.getElementById("setupBack"); if (sb) sb.addEventListener("click", backToStep1);
 
     const sd = document.getElementById("setupDone");
-    if(sd) {
+    if (sd) {
       sd.addEventListener("click", () => {
-        const checks = [...document.querySelectorAll(".cr-check")]; 
-        const types = [...document.querySelectorAll(".cr-type")]; 
-        const hours = [...document.querySelectorAll(".cr-hours")]; 
-        const mapType = Object.fromEntries(types.map(s => [s.dataset.name, s.value])); 
-        const mapHours = Object.fromEntries(hours.map(s => [s.dataset.name, Math.max(1, Math.min(80, Math.round(Number(s.value) || 40)))])); 
+        const checks = [...document.querySelectorAll(".cr-check")];
+        const types = [...document.querySelectorAll(".cr-type")];
+        const hours = [...document.querySelectorAll(".cr-hours")];
+        const mapType = Object.fromEntries(types.map(s => [s.dataset.name, s.value]));
+        const mapHours = Object.fromEntries(hours.map(s => [s.dataset.name, Math.max(1, Math.min(80, Math.round(Number(s.value) || 40)))]));
         const roster = checks.filter(c => c.checked).map(c => ({
           name: c.dataset.name, type: mapType[c.dataset.name] || "FT", hours: mapHours[c.dataset.name] || 40, active: true
-        })); 
+        }));
         storeData.roster = roster; saveStore(); renderAll(); closeSetup()
       });
     }
 
     const mp = document.getElementById("monthPicker");
-    if(mp) {
+    if (mp) {
       mp.addEventListener("input", e => {
         if (!storeData) return; storeData.month = e.target.value; saveStore(); renderKPIs()
       });
     }
 
     const tp = document.getElementById("todayPicker");
-    if(tp) {
+    if (tp) {
       tp.addEventListener("input", e => {
         if (!storeData) return; storeData.today = e.target.value; saveStore(); renderKPIs()
       });
@@ -1079,10 +1256,10 @@
     // We should probably NOT trigger openStart() immediately unless this tab is active.
     // However, Targets.html logic was: window.addEventListener("load", openStart);
     // tailored for standalone.
-    
+
     // We can leave it for the user to select the tab, then maybe we trigger it?
     // Or just run it once.
-    
+
     autoSetDatesIfEmpty();
   }
 
