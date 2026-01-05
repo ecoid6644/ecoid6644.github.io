@@ -898,20 +898,51 @@
           <div class="mb-6">
             <h1
               class="text-2xl font-bold mb-2 bg-gradient-to-r from-[#046b30] to-[#00c5a0] bg-clip-text text-transparent">
-              SIM Box Scanner</h1>
-            <p class="text-slate-500 dark:text-slate-400 text-sm">Scan the first SIM of a box (ending in 0) to
-              automatically generate the full box sequence.</p>
+              SIM Scanner</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-sm">Scan boxes or shipping containers to automatically
+              generate SIM sequences</p>
+          </div>
+
+          <!-- Mode Toggle -->
+          <div class="mb-6">
+            <label class="block text-xs font-semibold uppercase text-slate-500 dark:text-slate-400 mb-3">Scan
+              Mode</label>
+            <div class="flex gap-3">
+              <button id="mode-btn-box"
+                class="mode-btn flex-1 py-3 px-4 rounded-xl font-semibold text-sm border-2 transition-all duration-200 bg-gradient-to-br from-[#046b30] to-[#00c5a0] text-white border-[#00c5a0]">
+                <div class="flex flex-col items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="18" x="3" y="3" rx="2" />
+                  </svg>
+                  <span>Box (10 SIMs)</span>
+                </div>
+              </button>
+              <button id="mode-btn-shipping"
+                class="mode-btn flex-1 py-3 px-4 rounded-xl font-semibold text-sm border-2 transition-all duration-200 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-[#00c5a0]">
+                <div class="flex flex-col items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 16h3a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h3" />
+                    <rect width="10" height="8" x="7" y="12" rx="1" />
+                  </svg>
+                  <span>Shipping Box (250 SIMs)</span>
+                </div>
+              </button>
+            </div>
           </div>
 
           <!-- Input Section -->
           <div class="mb-6">
             <label for="start-sim"
-              class="block text-xs font-semibold uppercase text-slate-500 dark:text-slate-400 mb-2">Scan Box (First
-              SIM)</label>
+              class="block text-xs font-semibold uppercase text-slate-500 dark:text-slate-400 mb-2">
+              <span id="scan-mode-label">Scan Box (First SIM)</span>
+            </label>
             <input type="text" id="start-sim"
               class="w-full px-4 py-3 text-lg border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-[#00c5a0]/20 transition-shadow outline-none"
               placeholder="e.g. 6401250929641120" autocomplete="off">
             <p id="sim-error-msg" class="text-red-600 text-xs mt-2 hidden">Invalid input</p>
+            <p id="sim-info-msg" class="text-blue-600 dark:text-blue-400 text-xs mt-2 hidden"></p>
           </div>
 
           <!-- Results Section -->
@@ -1982,18 +2013,54 @@
       const textarea = document.getElementById('sim-list');
       const countBadge = document.getElementById('sim-count-badge');
       const errorMsg = document.getElementById('sim-error-msg');
+      const infoMsg = document.getElementById('sim-info-msg');
       const copyBtn = document.getElementById('sim-copy-btn');
       const clearBtn = document.getElementById('sim-clear-btn');
+      const modeBtnBox = document.getElementById('mode-btn-box');
+      const modeBtnShipping = document.getElementById('mode-btn-shipping');
+      const scanModeLabel = document.getElementById('scan-mode-label');
+
+      let currentMode = 'box'; // 'box' or 'shipping'
+
+      // --- Mode switching ---
+      const setMode = (mode) => {
+        currentMode = mode;
+
+        if (mode === 'box') {
+          // Box mode styling
+          modeBtnBox.className = 'mode-btn flex-1 py-3 px-4 rounded-xl font-semibold text-sm border-2 transition-all duration-200 bg-gradient-to-br from-[#046b30] to-[#00c5a0] text-white border-[#00c5a0]';
+          modeBtnShipping.className = 'mode-btn flex-1 py-3 px-4 rounded-xl font-semibold text-sm border-2 transition-all duration-200 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-[#00c5a0]';
+          scanModeLabel.textContent = 'Scan Box (First SIM)';
+        } else {
+          // Shipping mode styling
+          modeBtnShipping.className = 'mode-btn flex-1 py-3 px-4 rounded-xl font-semibold text-sm border-2 transition-all duration-200 bg-gradient-to-br from-[#046b30] to-[#00c5a0] text-white border-[#00c5a0]';
+          modeBtnBox.className = 'mode-btn flex-1 py-3 px-4 rounded-xl font-semibold text-sm border-2 transition-all duration-200 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-[#00c5a0]';
+          scanModeLabel.textContent = 'Scan Shipping Box (First or Last SIM)';
+        }
+
+        input.focus();
+      };
+
+      modeBtnBox.addEventListener('click', () => setMode('box'));
+      modeBtnShipping.addEventListener('click', () => setMode('shipping'));
 
       // --- helpers ---
       const showError = (msg) => {
         errorMsg.textContent = msg;
         errorMsg.classList.remove('hidden');
+        infoMsg.classList.add('hidden');
         input.style.borderColor = '#ef4444';
       };
 
-      const clearError = () => {
+      const showInfo = (msg) => {
+        infoMsg.textContent = msg;
+        infoMsg.classList.remove('hidden');
         errorMsg.classList.add('hidden');
+      };
+
+      const clearMessages = () => {
+        errorMsg.classList.add('hidden');
+        infoMsg.classList.add('hidden');
         input.style.borderColor = '';
       };
 
@@ -2025,15 +2092,39 @@
             return;
           }
 
-          clearError();
+          clearMessages();
 
           try {
             const baseNum = BigInt(val);
             const newSims = [];
+            let count = 10; // default for box mode
 
-            // Generate 10 SIM numbers starting from the scanned number
-            for (let i = 0; i < 10; i++) {
-              newSims.push((baseNum + BigInt(i)).toString());
+            if (currentMode === 'shipping') {
+              count = 250;
+
+              // Smart detection: Check if it's likely the last SIM (ends in 49, 99, etc.)
+              const lastTwoDigits = val.slice(-2);
+
+              // If it ends with 49 or 99, we assume it's the LAST sim in the box
+              if (lastTwoDigits === '49' || lastTwoDigits === '99') {
+                // Generate backwards from last SIM
+                const firstNum = baseNum - BigInt(249);
+                showInfo(`🔍 Detected LAST SIM in shipping box. Generating 250 SIMs from ${firstNum.toString()} to ${baseNum.toString()}`);
+                for (let i = 0; i < 250; i++) {
+                  newSims.push((firstNum + BigInt(i)).toString());
+                }
+              } else {
+                // Assume it's the first SIM, generate forward
+                showInfo(`✅ Generating 250 SIMs starting from ${baseNum.toString()}`);
+                for (let i = 0; i < 250; i++) {
+                  newSims.push((baseNum + BigInt(i)).toString());
+                }
+              }
+            } else {
+              // Box mode - simple 10 SIM generation
+              for (let i = 0; i < 10; i++) {
+                newSims.push((baseNum + BigInt(i)).toString());
+              }
             }
 
             // Append to textarea
@@ -2051,7 +2142,7 @@
 
             // Visual success feedback
             input.style.borderColor = '#00c5a0';
-            setTimeout(() => { input.style.borderColor = ''; }, 400);
+            setTimeout(() => { input.style.borderColor = ''; }, 1000);
 
           } catch (err) {
             showError('Error processing number: ' + err.message);
@@ -2059,9 +2150,11 @@
         }
       });
 
-      // Remove error when user starts typing again
+      // Remove messages when user starts typing again
       input.addEventListener('input', () => {
-        if (!errorMsg.classList.contains('hidden')) clearError();
+        if (!errorMsg.classList.contains('hidden') || !infoMsg.classList.contains('hidden')) {
+          clearMessages();
+        }
       });
 
       // --- Copy Functionality ---
