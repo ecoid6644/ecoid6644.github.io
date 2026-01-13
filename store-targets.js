@@ -1010,35 +1010,54 @@
         // Show leaderboard with top performers
         html += `<div class="space-y-2.5">`;
 
-        // Show top 5 performers
-        const topPerformers = repData.slice(0, Math.min(5, repData.length));
+        // Calculate actual ranks based on MTD values
+        const ranksData = [];
+        let currentRank = 1;
+
+        for (let i = 0; i < repData.length; i++) {
+          if (i > 0 && repData[i].mtd < repData[i - 1].mtd) {
+            currentRank = i + 1; // Skip to the actual position after ties
+          }
+          ranksData.push({
+            ...repData[i],
+            rank: currentRank
+          });
+        }
+
+        // Show top 5 performers (by position, but with proper ranks)
+        const topPerformers = ranksData.slice(0, Math.min(5, ranksData.length));
 
         topPerformers.forEach((rep, index) => {
           const isMoney = isMoney2(m.key);
           const displayValue = isMoney ? money2(rep.mtd) : rep.mtd.toLocaleString();
+          const actualRank = rep.rank; // Use calculated rank instead of index
 
-          // Medal colors, icons, and effects
+          // Medal colors, icons, and effects based on actual rank
           let medalIcon = "";
           let rankBg = "bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800";
           let rankText = "text-slate-700 dark:text-slate-300";
           let rowBg = "bg-white/70 dark:bg-slate-700/30";
           let glowEffect = "";
           let valueColor = "text-slate-800 dark:text-slate-200";
+          let scaleEffect = "";
+          let hoverScale = "hover:scale-[1.02]";
 
-          if (index === 0) {
+          if (actualRank === 1) {
             medalIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="text-white drop-shadow-lg"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>';
             rankBg = "bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 shadow-lg shadow-amber-500/50";
             rankText = "text-white";
             rowBg = "bg-gradient-to-r from-amber-50/80 via-white/70 to-white/70 dark:from-amber-900/20 dark:via-slate-700/40 dark:to-slate-700/30";
             glowEffect = "ring-2 ring-amber-400/30 dark:ring-amber-500/30";
             valueColor = "text-amber-700 dark:text-amber-400";
-          } else if (index === 1) {
+            scaleEffect = "scale-[1.03]";
+            hoverScale = "hover:scale-[1.05]";
+          } else if (actualRank === 2) {
             medalIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-white drop-shadow-md"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>';
             rankBg = "bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 shadow-md shadow-slate-400/40";
             rankText = "text-white";
             rowBg = "bg-gradient-to-r from-slate-100/80 via-white/70 to-white/70 dark:from-slate-600/20 dark:via-slate-700/40 dark:to-slate-700/30";
             valueColor = "text-slate-700 dark:text-slate-300";
-          } else if (index === 2) {
+          } else if (actualRank === 3) {
             medalIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-white drop-shadow-md"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>';
             rankBg = "bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 shadow-md shadow-orange-400/40";
             rankText = "text-white";
@@ -1046,13 +1065,10 @@
             valueColor = "text-orange-700 dark:text-orange-400";
           }
 
-          const scaleEffect = index === 0 ? "scale-[1.03]" : "";
-          const hoverScale = index === 0 ? "hover:scale-[1.05]" : "hover:scale-[1.02]";
-
           html += `
             <div class="flex items-center gap-4 p-4 rounded-2xl ${rowBg} border border-slate-200/40 dark:border-slate-600/30 ${glowEffect} hover:border-emerald-400/60 dark:hover:border-emerald-500/50 transition-all duration-500 ease-out group ${scaleEffect} ${hoverScale} backdrop-blur-sm" style="animation-delay: ${(index + 1) * 50}ms">
               <div class="flex-shrink-0 w-12 h-12 ${rankBg} rounded-2xl flex items-center justify-center font-black text-base shadow-lg transform group-hover:rotate-6 transition-transform duration-300 ${rankText}">
-                ${index < 3 ? medalIcon : `<span class="text-lg">${index + 1}</span>`}
+                ${actualRank <= 3 ? medalIcon : `<span class="text-lg">${actualRank}</span>`}
               </div>
               <div class="flex-1 min-w-0">
                 <div class="font-bold text-base text-slate-900 dark:text-white truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-300">${rep.name}</div>
