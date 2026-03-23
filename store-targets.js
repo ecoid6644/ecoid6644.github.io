@@ -1122,10 +1122,17 @@
     renderKPIs()
   }
 
+  function setHeaderModalState(hidden) {
+    const header = document.getElementById('mainHeader');
+    if (!header) return;
+    header.classList.toggle('header-modal-hidden', !!hidden);
+  }
+
   /* Start & Setup flow */
   function openStart() {
     const el = document.getElementById('startBackdrop');
     if (el) {
+      setHeaderModalState(true);
       el.classList.add('show');
       // Show intro step, hide name-entry step
       const introStep = document.getElementById('introStep');
@@ -1142,6 +1149,7 @@
   function closeStart() {
     const el = document.getElementById('startBackdrop');
     if (el) el.classList.remove('show');
+    setHeaderModalState(false);
   }
 
   function showNameEntry() {
@@ -1161,6 +1169,7 @@
     if (n) n.textContent = currentStore || "";
     const l = $("#setupLog");
     if (l) l.textContent = "";
+    setHeaderModalState(true);
     document.getElementById('setupBackdrop').classList.add('show');
     $("#setupStep1").style.display = "block";
     $("#setupStep2").style.display = "none";
@@ -1180,6 +1189,7 @@
 
   function closeSetup() {
     document.getElementById('setupBackdrop').classList.remove('show')
+    setHeaderModalState(false);
   }
   window.closeSetup = closeSetup;
 
