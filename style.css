@@ -549,7 +549,7 @@ tbody tr:hover td {
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  z-index: 120;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -969,6 +969,14 @@ h1, h2, h3, .tab-btn {
   position: sticky;
   top: 1rem;
   z-index: 40;
+  transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
+}
+
+#mainHeader.header-modal-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-10px);
 }
 
 #mainHeader.site-header {
