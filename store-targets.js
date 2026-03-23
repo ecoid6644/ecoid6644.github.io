@@ -20,7 +20,18 @@
   let currentStore = null;
   let storeData = null;
   let setupNames = [];
+  let targetsBootstrapped = false;
+  let targetsActivated = false;
   const $ = s => document.querySelector(s);
+  const MY_STORE_KEY = 'targets_my_store';
+  const TARGETS_STORAGE_PREFIXES = [
+    'area_targets_store::',
+    'OneNZ_store::',
+    'targets_store::',
+    'store::',
+    'rep_totals_cache::',
+    'rep_rates_cache::'
+  ];
 
   const money2 = v => {
     const n = Number(v || 0);
@@ -120,6 +131,13 @@
     return !d || !d.csvImported || !(d.roster || []).length;
   }
 
+  function isTargetsStorageKey(key) {
+    if (!key) return false;
+    if (key === MY_STORE_KEY) return true;
+    if (TARGETS_STORAGE_PREFIXES.some(prefix => key.startsWith(prefix))) return true;
+    return key.includes("::mtd");
+  }
+
   /* Parsing */
   function normHeader(h) {
     return String(h || "").replace(/^\uFEFF/, "").trim().toLowerCase().replace(/\s+/g, " ").replace(/[^a-z0-9]/g, " ").trim();
@@ -214,7 +232,7 @@
 
     if (!currentStore) {
       const il = document.getElementById('importLog');
-      if (il) il.textContent = "Select a store first.";
+      if (il) il.textContent = "Enter your store name first.";
       openStart();
       return
     }
@@ -1107,13 +1125,36 @@
   /* Start & Setup flow */
   function openStart() {
     const el = document.getElementById('startBackdrop');
-    if (el) el.classList.add('show');
+    if (el) {
+      el.classList.add('show');
+      // Show intro step, hide name-entry step
+      const introStep = document.getElementById('introStep');
+      const nameStep = document.getElementById('nameStep');
+      if (introStep) introStep.style.display = 'block';
+      if (nameStep) nameStep.style.display = 'none';
+      const inp = document.getElementById('startStoreName');
+      if (inp && !currentStore) inp.value = '';
+      const goBtn = document.getElementById('startGo');
+      if (goBtn) goBtn.disabled = !(inp && inp.value.trim());
+    }
   }
 
   function closeStart() {
     const el = document.getElementById('startBackdrop');
     if (el) el.classList.remove('show');
   }
+
+  function showNameEntry() {
+    const introStep = document.getElementById('introStep');
+    const nameStep = document.getElementById('nameStep');
+    if (introStep) introStep.style.display = 'none';
+    if (nameStep) {
+      nameStep.style.display = 'block';
+      const inp = document.getElementById('startStoreName');
+      if (inp) setTimeout(() => inp.focus(), 100);
+    }
+  }
+  window.showNameEntry = showNameEntry;
 
   function openSetup() {
     const n = $("#setupStoreName");
@@ -1145,11 +1186,18 @@
   function loadStore(s) {
     currentStore = s;
     storeData = ensureStoreRecord(s);
+    targetsActivated = true;
 
-    const title = $("#title"); // Beware: index.html header uses h1 but maybe no ID. Targets.html used id="title"
+    // Save store name for auto-load on return
+    localStorage.setItem(MY_STORE_KEY, s);
+
+    const title = $("#title");
     if (title) title.textContent = `Store Targets — ${s}`;
-    const ss = $("#storeSelect");
-    if (ss) ss.value = s;
+    const headerSub = $("#headerSubtitle");
+    if (headerSub) headerSub.textContent = `${s} — Performance Dashboard`;
+    // Update store name display in controls bar
+    const storeDisplay = $("#storeNameDisplay");
+    if (storeDisplay) storeDisplay.textContent = s;
     autoSetDatesIfEmpty();
     applyDatesToStore();
     const cs = $("#csvStatus");
@@ -1160,33 +1208,86 @@
 
   window.loadStore = loadStore;
 
-  /* Wire up */
-  // We need to wait for DOM to be ready, but this script is likely deferred or at end of body.
-  // We will attach listeners if elements exist.
+  /* Reset all data and return to intro */
+  function resetAllData() {
+    if (!confirm('This will clear all saved Store Targets data in this browser and take you back to the intro. Are you sure?')) return;
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (isTargetsStorageKey(key)) keysToRemove.push(key);
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
 
-  function initTargets() {
+    currentStore = null;
+    storeData = null;
+    setupNames = [];
+    targetsActivated = false;
+    // Reset UI
+    closeSetup();
+    const storeDisplay = $("#storeNameDisplay");
+    if (storeDisplay) storeDisplay.textContent = 'No store set';
+    const cs = $("#csvStatus");
+    if (cs) cs.textContent = 'Setup required';
+    const imp = $("#importLog"); if (imp) imp.textContent = '';
+    // Clear rendered sections
+    const ml = $("#metricsList"); if (ml) ml.innerHTML = '';
+    const rl = $("#repsList"); if (rl) rl.innerHTML = '';
+    const sc = $("#storeCards"); if (sc) sc.innerHTML = '';
+    const ro = $("#ratesOverview"); if (ro) ro.innerHTML = '';
+    const rt = $("#repTables"); if (rt) rt.innerHTML = '';
+    const lb = $("#leaderboards"); if (lb) lb.innerHTML = '';
+    const rc = $("#rosterCount"); if (rc) rc.textContent = '0 active';
+    const dl = $("#daysLeftPill"); if (dl) dl.textContent = '';
+    const mp = $("#monthPicker"); if (mp) mp.value = '';
+    const tp = $("#todayPicker"); if (tp) tp.value = '';
+    // Show the intro screen
+    openStart();
+  }
+  window.resetAllData = resetAllData;
+
+  function activateTargets() {
+    targetsActivated = true;
+    if (currentStore && storeData) return;
+    const savedStore = localStorage.getItem(MY_STORE_KEY);
+    if (savedStore) loadStore(savedStore);
+    else openStart();
+  }
+
+  /* Wire up */
+  function bootstrapTargets() {
+    if (targetsBootstrapped) return;
+    targetsBootstrapped = true;
+
+    // Start button (from intro → name entry → load)
     const startGo = document.getElementById("startGo");
     if (startGo) {
       startGo.addEventListener("click", () => {
-        const v = $("#startStore").value; if (!v) return; closeStart(); loadStore(v)
+        const inp = document.getElementById('startStoreName');
+        const v = inp ? inp.value.trim() : '';
+        if (!v) return;
+        closeStart();
+        loadStore(v);
       });
     }
 
-    const startStore = document.getElementById("startStore");
-    if (startStore) {
-      startStore.addEventListener("change", e => {
-        const btn = document.getElementById("startGo");
-        if (btn) btn.disabled = !e.target.value
+    // Enable/disable go button based on text input
+    const startStoreName = document.getElementById('startStoreName');
+    if (startStoreName) {
+      startStoreName.addEventListener('input', e => {
+        const btn = document.getElementById('startGo');
+        if (btn) btn.disabled = !e.target.value.trim();
+      });
+      // Allow pressing Enter to submit
+      startStoreName.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const btn = document.getElementById('startGo');
+          if (btn && !btn.disabled) btn.click();
+        }
       });
     }
 
-    const storeSelect = document.getElementById("storeSelect");
-    if (storeSelect) {
-      storeSelect.addEventListener("change", e => {
-        if (e.target.value) loadStore(e.target.value)
-      });
-    }
-
+    // CSV import handlers
     const csvFiles = document.getElementById("csvFiles");
     if (csvFiles) {
       csvFiles.addEventListener("change", async (e) => {
@@ -1200,9 +1301,7 @@
         if (logEl) logEl.textContent = `Importing ${files.length} file(s)…`;
 
         try {
-          await handleCSVImport(files, {
-            logEl
-          })
+          await handleCSVImport(files, { logEl })
         } catch (err) {
           if (logEl) logEl.textContent = `Import failed: ${err.message || err}`; console.error(err)
         }
@@ -1224,9 +1323,7 @@
         if (logEl) logEl.textContent = `Importing ${files.length} file(s)…`;
 
         try {
-          await handleCSVImport(files, {
-            logEl, nextBtn, collectNames: true
-          })
+          await handleCSVImport(files, { logEl, nextBtn, collectNames: true })
         } catch (err) {
           if (logEl) logEl.textContent = `Import failed: ${err.message || err}`; console.error(err)
         }
@@ -1267,19 +1364,18 @@
       });
     }
 
-    // Initial load logic
-    // In index.html, this functionality is hidden by default. 
-    // We should probably NOT trigger openStart() immediately unless this tab is active.
-    // However, Targets.html logic was: window.addEventListener("load", openStart);
-    // tailored for standalone.
-
-    // We can leave it for the user to select the tab, then maybe we trigger it?
-    // Or just run it once.
+    // Reset button
+    const resetBtn = document.getElementById('resetAllBtn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', resetAllData);
+    }
 
     autoSetDatesIfEmpty();
   }
 
-  // Hook into our custom event or general load
-  window.addEventListener("load", initTargets);
-  // Also hook into tab show if possible, or just let init run once.
+  window.addEventListener("load", bootstrapTargets);
+  window.addEventListener("targets-tab-shown", () => {
+    bootstrapTargets();
+    activateTargets();
+  });
 })();
