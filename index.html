@@ -1165,7 +1165,7 @@
           <div class="tool-hero mb-8 relative">
             <div class="tool-pill">Finance Helper</div>
             <h2 class="tool-title">IFP Calculator</h2>
-            <p class="tool-description">Enter the phone price, pick the term, and get the repayment, deposit, and discount numbers you need straight away.</p>
+            <p class="tool-description">Enter the phone price, optional trade-in, pick the term, and get the repayment, deposit, and discount numbers you need straight away.</p>
           </div>
 
           <!-- Phone RRP -->
@@ -1180,6 +1180,15 @@
             <div class="relative">
               <span class="absolute left-4 top-1/2 -translate-y-1/2 text-violet-400 dark:text-violet-500 font-bold text-lg">$</span>
               <input id="ifpRRP" type="number" min="0" step="0.01" placeholder="e.g. 1499" class="w-full pl-9 pr-4 py-3 text-lg rounded-xl font-semibold focus:ring-violet-400/30 focus:border-violet-400" />
+            </div>
+          </div>
+
+          <!-- Trade-in Value -->
+          <div class="mb-6 relative">
+            <label for="ifpTradeIn" class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-2">Trade-in Value <span class="normal-case font-medium text-slate-400 dark:text-slate-500">(optional)</span></label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-violet-400 dark:text-violet-500 font-bold text-lg">$</span>
+              <input id="ifpTradeIn" type="number" min="0" step="0.01" placeholder="e.g. 200" class="w-full pl-9 pr-4 py-3 text-lg rounded-xl font-semibold focus:ring-violet-400/30 focus:border-violet-400" />
             </div>
           </div>
 
@@ -1233,6 +1242,20 @@
             <div class="flex justify-between items-center py-3 px-3 rounded-lg hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
               <span class="text-sm text-slate-500 dark:text-slate-400 font-medium">Phone RRP</span>
               <span id="ifpResRRP" class="font-bold text-slate-800 dark:text-white">—</span>
+            </div>
+            <!-- Trade-in -->
+            <div id="ifpResTradeInRow" class="hidden">
+              <div class="flex justify-between items-center py-3 px-3 rounded-lg hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
+                <span class="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Trade-in Value</span>
+                <span id="ifpResTradeIn" class="font-bold text-emerald-600 dark:text-emerald-400">—</span>
+              </div>
+            </div>
+            <!-- Price after Trade-in -->
+            <div id="ifpResNetPriceRow" class="hidden">
+              <div class="flex justify-between items-center py-3 px-3 rounded-lg hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
+                <span class="text-sm text-slate-500 dark:text-slate-400 font-medium">Price after trade-in</span>
+                <span id="ifpResNetPrice" class="font-bold text-slate-800 dark:text-white">—</span>
+              </div>
             </div>
             <!-- Deposit -->
             <div class="flex justify-between items-center py-3 px-3 rounded-lg hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
@@ -2663,6 +2686,7 @@
       ];
 
       const rrpInput = document.getElementById('ifpRRP');
+      const tradeInInput = document.getElementById('ifpTradeIn');
       const termGroup = document.getElementById('ifpTermGroup');
       const depositSelect = document.getElementById('ifpDeposit');
       const discountSection = document.getElementById('ifpDiscountSection');
@@ -2671,6 +2695,10 @@
       const resultsCard = document.getElementById('ifpResults');
 
       const resRRP = document.getElementById('ifpResRRP');
+      const resTradeInRow = document.getElementById('ifpResTradeInRow');
+      const resTradeIn = document.getElementById('ifpResTradeIn');
+      const resNetPriceRow = document.getElementById('ifpResNetPriceRow');
+      const resNetPrice = document.getElementById('ifpResNetPrice');
       const resDeposit = document.getElementById('ifpResDeposit');
       const resDiscountRow = document.getElementById('ifpResDiscountRow');
       const resDiscountLabel = document.getElementById('ifpResDiscountLabel');
@@ -2685,21 +2713,34 @@
       let selectedTerm = 24;
       const fmt = (v) => '$' + v.toFixed(2);
 
-      function getDeposits(rrp) {
+      function getAdjustedPrice() {
+        const rrp = parseFloat(rrpInput.value) || 0;
+        const tradeIn = Math.max(0, parseFloat(tradeInInput.value) || 0);
+        return Math.max(0, rrp - Math.min(tradeIn, rrp));
+      }
+
+      function getDeposits(price) {
         for (const range of DEPOSIT_TABLE) {
-          if (rrp >= range.min && rrp <= range.max) return range.deposits;
+          if (price >= range.min && price <= range.max) return range.deposits;
         }
         return [];
       }
 
       function updateDepositDropdown() {
-        const rrp = parseFloat(rrpInput.value) || 0;
-        const deposits = getDeposits(rrp);
-        const prevVal = parseInt(depositSelect.value) || 99;
+        const adjustedPrice = getAdjustedPrice();
+        const hasTradeIn = (parseFloat(tradeInInput.value) || 0) > 0;
+        const deposits = getDeposits(adjustedPrice);
+        const prevVal = parseInt(depositSelect.value) || (hasTradeIn ? 0 : 99);
         depositSelect.innerHTML = '';
         if (deposits.length === 0) {
-          depositSelect.innerHTML = '<option value="">Enter a valid RRP ($199–$5000)</option>';
+          depositSelect.innerHTML = '<option value="">Enter a valid adjusted price ($199–$5000)</option>';
           return;
+        }
+        if (hasTradeIn) {
+          const zeroOpt = document.createElement('option');
+          zeroOpt.value = 0;
+          zeroOpt.textContent = '$0';
+          depositSelect.appendChild(zeroOpt);
         }
         deposits.forEach(d => {
           const opt = document.createElement('option');
@@ -2707,7 +2748,8 @@
           opt.textContent = '$' + d;
           depositSelect.appendChild(opt);
         });
-        depositSelect.value = deposits.includes(prevVal) ? prevVal : deposits[0];
+        const availableDeposits = hasTradeIn ? [0, ...deposits] : deposits;
+        depositSelect.value = availableDeposits.includes(prevVal) ? prevVal : availableDeposits[0];
       }
 
       function setActiveTerm(term) {
@@ -2734,6 +2776,9 @@
 
       function recalculate() {
         const rrp = parseFloat(rrpInput.value) || 0;
+        const rawTradeIn = Math.max(0, parseFloat(tradeInInput.value) || 0);
+        const tradeIn = Math.min(rawTradeIn, rrp);
+        const adjustedPrice = Math.max(0, rrp - tradeIn);
         const deposit = parseInt(depositSelect.value) || 0;
         const term = selectedTerm;
         if (rrp <= 0) { resultsCard.classList.add('hidden'); return; }
@@ -2743,13 +2788,23 @@
         if (term !== 12) {
           discountAmount = parseFloat(discountInput.value) || 0;
         }
+        discountAmount = Math.min(discountAmount, adjustedPrice);
 
-        const financedAmount = rrp - deposit;
+        const financedAmount = Math.max(0, adjustedPrice - deposit);
         const baseMonthly = financedAmount / term;
         const monthlyDiscount = discountAmount > 0 ? discountAmount / term : 0;
         const finalMonthly = baseMonthly - monthlyDiscount;
 
         resRRP.textContent = fmt(rrp);
+        if (tradeIn > 0) {
+          resTradeInRow.classList.remove('hidden');
+          resNetPriceRow.classList.remove('hidden');
+          resTradeIn.textContent = '-' + fmt(tradeIn);
+          resNetPrice.textContent = fmt(adjustedPrice);
+        } else {
+          resTradeInRow.classList.add('hidden');
+          resNetPriceRow.classList.add('hidden');
+        }
         resDeposit.textContent = fmt(deposit);
 
         if (discountAmount > 0 && term !== 12) {
@@ -2770,6 +2825,7 @@
       }
 
       rrpInput.addEventListener('input', () => { updateDepositDropdown(); recalculate(); });
+      tradeInInput.addEventListener('input', () => { updateDepositDropdown(); recalculate(); });
       depositSelect.addEventListener('change', recalculate);
       discountInput.addEventListener('input', recalculate);
       termGroup.addEventListener('click', (e) => {
