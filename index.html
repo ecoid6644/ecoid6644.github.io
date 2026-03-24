@@ -1006,31 +1006,30 @@
             </div>
           </div>
 
-          <div id="kpiSummary" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-            <div class="sales-stat-card sales-stat-card-blue">
-              <div class="sales-stat-label">Reps</div>
-              <div id="kpiStatReps" class="sales-stat-value">0</div>
-              <div class="sales-stat-sub">Included in report</div>
-            </div>
-            <div class="sales-stat-card sales-stat-card-emerald">
-              <div class="sales-stat-label">Total GP</div>
-              <div id="kpiStatGp" class="sales-stat-value">$0.00</div>
-              <div class="sales-stat-sub">Gross profit across team</div>
-            </div>
-            <div class="sales-stat-card sales-stat-card-violet">
-              <div class="sales-stat-label">Avg GM %</div>
-              <div id="kpiStatGmp" class="sales-stat-value">0.0%</div>
-              <div class="sales-stat-sub">Weighted from uploaded report</div>
-            </div>
-            <div class="sales-stat-card sales-stat-card-orange">
-              <div class="sales-stat-label">Top Performer</div>
-              <div id="kpiStatTopRep" class="sales-stat-value sales-stat-value-sm">-</div>
-              <div id="kpiStatTopRepMeta" class="sales-stat-sub">Highest gross profit</div>
-            </div>
-          </div>
-
           <div id="kpiCapture" class="sales-report-capture">
             <div class="sales-report-sheen"></div>
+            <div id="kpiSummary" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+              <div class="sales-stat-card sales-stat-card-blue">
+                <div class="sales-stat-label">Reps</div>
+                <div id="kpiStatReps" class="sales-stat-value">0</div>
+                <div class="sales-stat-sub">Included in report</div>
+              </div>
+              <div class="sales-stat-card sales-stat-card-emerald">
+                <div class="sales-stat-label">Total GP</div>
+                <div id="kpiStatGp" class="sales-stat-value">$0.00</div>
+                <div class="sales-stat-sub">Gross profit across team</div>
+              </div>
+              <div class="sales-stat-card sales-stat-card-violet">
+                <div class="sales-stat-label">Avg GM %</div>
+                <div id="kpiStatGmp" class="sales-stat-value">0.0%</div>
+                <div class="sales-stat-sub">Weighted from uploaded report</div>
+              </div>
+              <div class="sales-stat-card sales-stat-card-orange">
+                <div class="sales-stat-label">Top Performer</div>
+                <div id="kpiStatTopRep" class="sales-stat-value sales-stat-value-sm">-</div>
+                <div id="kpiStatTopRepMeta" class="sales-stat-sub">Highest gross profit</div>
+              </div>
+            </div>
             <div id="kpiEmptyState" class="sales-empty-state">
               <div class="sales-empty-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
@@ -1047,11 +1046,10 @@
               <table id="kpiTable" class="w-full text-sm text-center border-collapse rounded-xl overflow-hidden"
                 style="border-radius: 1rem;"></table>
             </div>
-          </div>
-
-          <div class="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-sm">
-            <div id="kpiFileName" class="text-slate-500 dark:text-slate-400">No report uploaded yet.</div>
-            <div id="kpiCopyright" class="hidden text-slate-400 dark:text-slate-500">Sales snapshot ready for sharing.</div>
+            <div class="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-sm">
+              <div id="kpiFileName" class="text-slate-500 dark:text-slate-400">No report uploaded yet.</div>
+              <div id="kpiCopyright" class="hidden text-slate-400 dark:text-slate-500">Sales snapshot ready for sharing.</div>
+            </div>
           </div>
         </div>
       </section>
@@ -2461,16 +2459,31 @@
 
       if (kpiBtnScreenshot) {
         kpiBtnScreenshot.addEventListener('click', async () => {
-          const el = document.getElementById('kpiBoard');
+          const el = document.getElementById('kpiCapture');
           try {
-            const canvas = await html2canvas(el);
-            canvas.toBlob(async (blob) => {
-              await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
-              alert("Snapshot copied to clipboard!");
-            });
+            if (!navigator.clipboard || typeof navigator.clipboard.write !== 'function' || typeof ClipboardItem === 'undefined') {
+              throw new Error('Image clipboard is not supported in this browser.');
+            }
+
+            const pngPromise = html2canvas(el).then((canvas) => new Promise((resolve, reject) => {
+              canvas.toBlob((blob) => {
+                if (blob) {
+                  resolve(blob);
+                } else {
+                  reject(new Error('Unable to create image blob.'));
+                }
+              }, 'image/png');
+            }));
+
+            await navigator.clipboard.write([
+              new ClipboardItem({
+                'image/png': pngPromise
+              })
+            ]);
+            alert("Snapshot copied to clipboard!");
           } catch (err) {
             console.error(err);
-            alert("Snapshot failed.");
+            alert(`Snapshot failed: ${err && err.message ? err.message : 'Unknown error'}`);
           }
         });
       }
